@@ -278,7 +278,7 @@ if __name__ == '__main__':
     hp['stochlearn'] = True
 
     hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.15
+    hp['omitg'] = 0.02
     hp['mcscl'] = 1  # 1
 
     hp['lr'] = 0.0005  # 0.0005
@@ -290,16 +290,14 @@ if __name__ == '__main__':
     hp['cp'] = [1,0.1]
     hp['resns'] = 0.025
 
-    hp['usesmc'] = False
-
     hp['Rval'] = 4
     hp['taua'] = 2500
     hp['cuescl'] = 3
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '6pa_res_xy_{}sl_{}smc_reset_{}ns_{}om_{}bm_{}n_{}tau_{}taua_{}xy_{}lr_{}dt_b{}_{}'.format(
-        hp['stochlearn'], hp['usesmc'], hp['resns'], hp['omitg'], hp['mcbeta'],
+    hp['exptname'] = '6pa_res_xy_{}sl_{}smc_{}t_reset_{}ns_{}om_{}bm_{}n_{}tau_{}taua_{}xy_{}lr_{}dt_b{}_{}'.format(
+        hp['stochlearn'], hp['usesmc'],hp['time'] ,  hp['resns'], hp['omitg'], hp['mcbeta'],
         hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],
         hp['lr'],  hp['tstep'],hp['btstp'],dt.monotonic())
 

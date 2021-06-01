@@ -215,7 +215,7 @@ def get_default_hp(task, platform='laptop'):
         'savefig': True,
         'saveweight': False,
         'savegenvar': False,
-        'modeltype': None
+        'modeltype': None,
 
     }
 

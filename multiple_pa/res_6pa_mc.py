@@ -155,7 +155,7 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
 
     if useweight:
         agent.model.set_weights(useweight)
-        print(agent.model.layers[-2].get_weights()[0])
+        #print(agent.model.layers[-2].get_weights()[0])
 
     for t in range(sessions*6):
         # Reset environment, actor dynamics
@@ -265,11 +265,11 @@ if __name__ == '__main__':
     hp['evsess'] = 2
     hp['cuescl'] = 3
     hp['tstep'] = 100  # deltat
-    hp['btstp'] = 15
-    hp['time'] = 1000  # Tmax seconds
+    hp['btstp'] = 20
+    hp['time'] = 3600  # Tmax seconds
     hp['savefig'] = True
     hp['savevar'] = False
-    hp['savegenvar'] = True
+    hp['savegenvar'] = False
 
     ''' Model parameters '''
     hp['xylr'] = 0.00015  # 0.00015
@@ -277,8 +277,6 @@ if __name__ == '__main__':
     hp['stochlearn'] = False
 
     hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.15
-    hp['mcscl'] = 1  # 1
 
     hp['lr'] = 0.0005  # 0.0005
     hp['nrnn'] = 1024
@@ -289,16 +287,16 @@ if __name__ == '__main__':
     hp['cp'] = [1,0.1]
     hp['resns'] = 0.025
 
-    hp['usesmc'] = False
-
     hp['Rval'] = 4
     hp['taua'] = 250
     hp['cuescl'] = 3
 
+    hp['omitg'] = 0.125
+
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '6pa_res_xy_{}sl_{}smc_reset_{}ns_{}om_{}bm_{}n_{}tau_{}taua_{}xy_{}lr_{}dt_b{}_{}'.format(
-        hp['stochlearn'], hp['usesmc'], hp['resns'], hp['omitg'], hp['mcbeta'],
+    hp['exptname'] = '6pa_res_xy_{}sl_{}smc_{}t_reset_{}ns_{}om_{}bm_{}n_{}tau_{}taua_{}xy_{}lr_{}dt_b{}_{}'.format(
+        hp['stochlearn'], hp['usesmc'],hp['time'], hp['resns'], hp['omitg'], hp['mcbeta'],
         hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],
         hp['lr'],  hp['tstep'],hp['btstp'],dt.monotonic())
 

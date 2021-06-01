@@ -199,22 +199,22 @@ def run_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=None):
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='1pa',platform='server')
+    hp = get_default_hp(task='1pa',platform='laptop')
 
     hp['epochs'] = 9
     hp['tstep'] = 100  # deltat
-    hp['btstp'] = 500
+    hp['btstp'] = 1
     hp['trsess'] = 5
-    hp['time'] = 1000  # Tmax seconds
+    hp['time'] = 600  # Tmax seconds
     hp['savefig'] = True
-    hp['savegenvar'] = True
+    hp['savegenvar'] = False
 
     ''' Model parameters '''
     hp['xylr'] = 0.00015
     hp['eulerm'] = 1
 
     hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.15
+    hp['omitg'] = 0.025
     hp['storebeta'] = 1
     hp['recallbeta'] = 1
 

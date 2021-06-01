@@ -183,6 +183,10 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
             if hp['eulerm'] == 0:
                 xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
 
+            if mtype == 'npa' and t not in env.nort and b == 0:
+                if np.argmax(cue) == 6 or np.argmax(cue) == 7:
+                    print(agent.goal.numpy()[0], tf.norm(agent.goal[0], ord=2).numpy())
+
             if done:
                 break
 
@@ -236,24 +240,24 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='6pa',platform='laptop')
+    hp = get_default_hp(task='6pa',platform='server')
 
     hp['trsess'] = 20
     hp['evsess'] = 2
     hp['cuescl'] = 3
     hp['tstep'] = 100  # deltat
-    hp['btstp'] = 10
-    hp['time'] = 1000  # Tmax seconds
+    hp['btstp'] = 15
+    hp['time'] = 3600  # Tmax seconds
     hp['savefig'] = True
     hp['savevar'] = False
-    hp['savegenvar'] = True
+    hp['savegenvar'] = False
 
     ''' Model parameters '''
     hp['xylr'] = 0.00015  # 0.00015
     hp['eulerm'] = 1
 
     hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.15
+    hp['omitg'] = 0.025
     hp['storebeta'] = 1
     hp['recallbeta'] = 1
 
@@ -267,8 +271,8 @@ if __name__ == '__main__':
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '6pa_sym_xy_{}om_{}mb_{}taua_{}xy_{}dt_b{}_{}'.format(
-        hp['omitg'], hp['mcbeta'],
+    hp['exptname'] = '6pa_sym_xy_{}omg_{}t_{}mb_{}taua_{}xy_{}dt_b{}_{}'.format(
+        hp['omitg'], hp['time'], hp['mcbeta'],
         hp['taua'],hp['xylr'],hp['tstep'],hp['btstp'],dt.monotonic())
 
     totlat, totdgr, totpi, mvpath = multiplepa_script(hp)

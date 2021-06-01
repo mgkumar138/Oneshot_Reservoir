@@ -292,6 +292,7 @@ class Navex:
         self.rlocs = []
         for r in range(mtype):
             self.rlocs.append(self.holoc[rlocsidx])
+            #self.rlocs.append(self.holoc[24])
         self.rlocs = np.array(self.rlocs)
         self.cues = np.tile(self.smell[0],(len(self.smell),1))  # np.zeros_like(self.smell)
         self.loci += 1

@@ -37,7 +37,8 @@ class Res_MC_Agent:
         self.pc = place_cells(hp)
         self.model = Res_Model(hp)
         self.usesmc = hp['usesmc']
-        self.nmc = tf.keras.models.load_model('../motor_controller/pcin_motor_controller_model')
+        #self.nmc = tf.keras.models.load_model('../motor_controller/pcin_motor_controller_model')
+        #self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_model_512_2021-05-28')
         self.ac = action_cells(hp)
 
     def act(self, state, cue_r_fb, mstate):
@@ -53,8 +54,8 @@ class Res_MC_Agent:
         if self.usesmc:
             qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
         else:
-            gpc = tf.cast(self.pc.sense(g),dtype=tf.float32)
-            qhat = self.nmc(tf.concat([gpc,cpc],axis=0)[None,:])
+            #gpc = tf.cast(self.pc.sense(g),dtype=tf.float32)
+            qhat = self.mc(tf.concat([self.goal,xy],axis=1))
 
         return state_cue_fb, cpc, qhat, xy, h, x, g
 
@@ -165,8 +166,9 @@ class RNN_Cell(tf.keras.layers.Layer):
         rit = self.resact(xit)
         return rit, xit
 
-def motor_controller(goal, xy, ac, q=0, beta=4, omitg=0.15):
+def motor_controller2(goal, xy, ac, q=0, beta=4, omitg=0.0005):
     if tf.norm(goal[0], ord=2) > omitg:
+    #if tf.norm(goal[0]-xy[0], ord=2) > omitg:
         dircomp = tf.cast(goal - xy, dtype=tf.float32)
         qk = tf.matmul(dircomp, ac.aj)
         sattw = tf.nn.softmax(beta * qk)
@@ -175,6 +177,15 @@ def motor_controller(goal, xy, ac, q=0, beta=4, omitg=0.15):
     qns = sattw + q
     return qns
 
+
+def motor_controller(goal, xy, ac, q=0, beta=4, omitg=0.15):
+    dircomp = tf.cast(goal - xy, dtype=tf.float32)
+    qk = tf.matmul(dircomp, ac.aj)
+    sattw = tf.nn.softmax(beta * qk)
+    if np.max(sattw) < omitg:
+        sattw = tf.zeros([1, ac.nact])
+    qns = sattw + q
+    return qns
 
 class place_cells():
     def __init__(self, hp):
@@ -472,6 +483,7 @@ class Foster_MC_Agent:
             memidx = np.argmax(cue_r_fb)-49
             if R>0:
                 self.memory[memidx] = np.concatenate([cue_r_fb,xy],axis=1)
+                #print(self.memory[memidx,-2:])
             else:
                 self.memory[memidx] = 0
             # memidx = np.argmax(cue_r_fb)-49
@@ -544,7 +556,7 @@ class SimpleAgent:
         self.npc = hp['npc']
         self.nact = hp['nact']
         self.workmem = hp['workmem']
-        self.calpha = hp['tstep'] / hp['ctau']
+        self.calpha = hp['tstep'] / hp['tau']
 
         ''' hidden param '''
         self.lr = hp['lr']
@@ -618,10 +630,9 @@ class SimpleModel(tf.keras.Model):
         self.ncri = hp['ncri']
         self.nhid = hp['nhid']
         self.npc = hp['npc']
-        self.hidscale = hp['hidscale']
-        self.crins = np.sqrt(hp['ctau']/hp['tstep']) * hp['crins']
+        self.hidscale = 1# hp['hidscale']
+        self.crins = np.sqrt(hp['tau']/hp['tstep']) * hp['crins']
         self.hidact = hp['hidact']
-        self.hidscale = hp['hidscale']
 
         if hp['controltype'] == 'expand':
             self.controltype = (self.nhid // (self.npc ** 2 + hp['cuesize'])) + 1  # tile factor 16 (1024) or 80 (8192)

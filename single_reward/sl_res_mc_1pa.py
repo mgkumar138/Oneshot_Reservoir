@@ -208,9 +208,9 @@ if __name__ == '__main__':
 
     hp['epochs'] = 9
     hp['tstep'] = 100  # deltat
-    hp['btstp'] = 3
+    hp['btstp'] = 30
     hp['trsess'] = 5
-    hp['time'] = 1000  # Tmax seconds
+    hp['time'] = 600  # Tmax seconds
     hp['savefig'] = True
     hp['savegenvar'] = True
 
@@ -237,8 +237,8 @@ if __name__ == '__main__':
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '1pa_res_xy_{}sl_reset_{}om_{}bm_{}n_{}tau_{}taua_{}xy_{}lr_{}dt_b{}_{}'.format(
-        hp['stochlearn'], hp['omitg'], hp['mcbeta'],
+    hp['exptname'] = '1pa_res_xy_{}sl_{}smc_reset_{}om_{}bm_{}n_{}tau_{}taua_{}xy_{}lr_{}dt_b{}_{}'.format(
+        hp['stochlearn'],hp['usesmc'], hp['omitg'], hp['mcbeta'],
         hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],
         hp['lr'],  hp['tstep'],hp['btstp'],dt.monotonic())
 

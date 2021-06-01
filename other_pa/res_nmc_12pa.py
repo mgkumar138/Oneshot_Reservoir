@@ -229,10 +229,10 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='6pa',platform='server')
+    hp = get_default_hp(task='6pa',platform='laptop')
 
     hp['tstep'] = 100  # deltat
-    hp['btstp'] = 30
+    hp['btstp'] = 10
     hp['trsess'] = 20
     hp['evsess'] = 2
     hp['time'] = 1000  # Tmax seconds
@@ -253,12 +253,10 @@ if __name__ == '__main__':
     hp['nrnn'] = 1024
     hp['ract'] = 'tanh'
     hp['recact'] = 'tanh'
-    hp['chaos'] = 1.0
+    hp['chaos'] = 1.5
     hp['recwinscl'] = 1
     hp['cp'] = [1,0.1]
     hp['resns'] = 0.025
-
-    hp['usesmc'] = False
 
     hp['Rval'] = 4
     hp['taua'] = 250
