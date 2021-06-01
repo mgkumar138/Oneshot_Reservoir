@@ -132,9 +132,6 @@ def control_multiplepa_expt(hp,b):
     if hp['savevar']:
         saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
                  [rdyn, gdyn, mvpath, lat, dgr, pi, diffw])
-    if hp['saveweight']:
-        saveload('save', './Data/weights_{}_{}'.format(exptname, dt.time()),
-                 [trw, opaw, npaw, nmw])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
 

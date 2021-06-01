@@ -183,10 +183,6 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
             if hp['eulerm'] == 0:
                 xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
 
-            if mtype == 'npa' and t not in env.nort and b == 0:
-                if np.argmax(cue) == 6 or np.argmax(cue) == 7:
-                    print(agent.goal.numpy()[0], tf.norm(agent.goal[0], ord=2).numpy())
-
             if done:
                 break
 
