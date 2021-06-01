@@ -1,17 +1,10 @@
 import sys
 sys.path.append("../")
-
-import numpy as np
-import matplotlib.pyplot as plt
-from backend_scripts.utils import saveload, get_default_hp, find_cue, plot_dgr
 import time as dt
-from backend_scripts.maze_env import Maze
-import multiprocessing as mp
-from functools import partial
-import tensorflow as tf
-import pandas as pd
+from backend_scripts.utils import get_default_hp
+from backend_scripts.tasks import multiplepa_script
 
-
+'''
 def run_a2cagent_multiplepa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None, nocue=None, noreward=None):
     if mtype == 'train':
         mvpath = np.zeros((3, 6, env.normax, 2))
@@ -232,12 +225,12 @@ def setup_a2cagent_multiplepa_expt(hp,b):
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
 
     return lat, dgr, pi, diffw, mvpath, allw, alldyn
-
+'''
 
 if __name__ == '__main__':
 
     hp = get_default_hp(task='6pa',platform='laptop')
-
+    hp['agenttype'] = 'a2c'
     hp['btstp'] = 1
     hp['savefig'] = True
     hp['savevar'] = False
@@ -253,12 +246,12 @@ if __name__ == '__main__':
     hp['lr'] = 0.000035
     hp['actalpha'] = 1/4  # to smoothen action taken by agent
     hp['maxspeed'] = 0.07  # step size per 100ms
-    hp['entbeta'] = -0.001
-    hp['valalpha'] = 0.5
+    hp['betaent'] = -0.001
+    hp['betaval'] = 0.5
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '6pa_hid_a2c_{}n_{}ra_{}lr_{}tg_b{}_{}'.format(
-        hp['nhid'], hp['hidact'], hp['lr'], hp['taug'], hp['btstp'], dt.monotonic())
+    hp['exptname'] = '{}_hid_{}_{}n_{}ra_{}lr_{}tg_b{}_{}'.format(
+        hp['task'],hp['agenttype'], hp['nhid'], hp['hidact'], hp['lr'], hp['taug'], hp['btstp'], dt.monotonic())
 
     totlat, totdgr, totpi, diffw, mvpath, allw, alldyn = multiplepa_script(hp)

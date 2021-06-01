@@ -1,18 +1,11 @@
 import sys
 sys.path.append("../")
-
-import numpy as np
-import matplotlib.pyplot as plt
-from backend_scripts.utils import saveload
 import time as dt
-from backend_scripts.maze_env import Navex
 from backend_scripts.utils import get_default_hp
-import multiprocessing as mp
-from functools import partial
-
-from backend_scripts.model import Res_MC_Agent
+from backend_scripts.tasks import singlepa_script
 
 
+'''
 def singlepa_script(hp):
     exptname = hp['exptname']
     btstp = hp['btstp']
@@ -200,12 +193,12 @@ def run_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=None):
     mdlw = agent.model.get_weights()
 
     return lat, dgr, mdlw, mvpath
-
+'''
 
 if __name__ == '__main__':
 
     hp = get_default_hp(task='1pa',platform='laptop')
-
+    hp['agenttype'] = 'res'
     hp['btstp'] = 1
     hp['savefig'] = True
     hp['savegenvar'] = False
@@ -217,8 +210,8 @@ if __name__ == '__main__':
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '1pa_res_xy_{}sl_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
-        hp['stochlearn'],hp['time'],hp['omitg'], hp['chaos'], hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],
-        hp['lr'],  hp['btstp'],dt.monotonic())
+    hp['exptname'] = '{}_{}_xy_{}sl_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
+        hp['task'],hp['agenttype'], hp['stochlearn'],hp['time'],hp['omitg'], hp['chaos'],
+        hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],  hp['lr'],  hp['btstp'],dt.monotonic())
 
     totlat, totdgr, mvpath, mdlw = singlepa_script(hp)

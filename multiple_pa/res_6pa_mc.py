@@ -1,19 +1,10 @@
 import sys
 sys.path.append("../")
-
-import numpy as np
-import matplotlib.pyplot as plt
-from backend_scripts.utils import save_rdyn, find_cue, saveload, plot_dgr
 import time as dt
-from backend_scripts.maze_env import Maze
 from backend_scripts.utils import get_default_hp
-import multiprocessing as mp
-from functools import partial
-import pandas as pd
-import tensorflow as tf
-from backend_scripts.model import Res_MC_Agent
+from backend_scripts.tasks import multiplepa_script
 
-
+'''
 def multiplepa_script(hp):
     exptname = hp['exptname']
     btstp = hp['btstp']
@@ -252,12 +243,12 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
     if hp['platform'] == 'server':
         print('Agent {} {} training dig rate: {}'.format(b, mtype, dgr))
     return lat, mvpath, mdlw, dgr, sesspi
-
+'''
 
 if __name__ == '__main__':
 
     hp = get_default_hp(task='6pa',platform='laptop')
-
+    hp['agenttype'] = 'res'
     hp['btstp'] = 1
     hp['savefig'] = True
     hp['savevar'] = False
@@ -270,9 +261,9 @@ if __name__ == '__main__':
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '6pa_res_xy_{}sl_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
-        hp['stochlearn'],hp['time'],hp['omitg'], hp['chaos'], hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],
-        hp['lr'],  hp['btstp'],dt.monotonic())
+    hp['exptname'] = '{}_{}_xy_{}sl_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
+        hp['task'],hp['agenttype'], hp['stochlearn'],hp['time'],hp['omitg'], hp['chaos'],
+        hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],  hp['lr'],  hp['btstp'],dt.monotonic())
 
     totlat, totdgr, totpi, diffw, mvpath, allw, alldyn = multiplepa_script(hp)
 

@@ -296,8 +296,8 @@ class BackpropAgent:
         self.ac = action_cells(hp)
         self.memory = Memory()
         self.opt = tf.optimizers.RMSprop(learning_rate=self.lr)
-        self.eb = hp['entbeta']
-        self.va = hp['valalpha']
+        self.be = hp['betaent']
+        self.bv = hp['betaval']
 
     def act(self, state, cue_r_fb):
         s = self.pc.sense(state)  # convert coordinate info to place cell activity
@@ -356,7 +356,7 @@ class BackpropAgent:
         entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logit, labels=tf.nn.softmax(logit))
 
         # merge all losses to train network tgt
-        comb_loss = tf.reduce_mean((self.va * value_loss + policy_loss + self.eb * entropy))
+        comb_loss = tf.reduce_mean((self.bv * value_loss + policy_loss + self.be * entropy))
         self.loss = comb_loss
 
         return policy_loss, value_loss, comb_loss

@@ -1,19 +1,10 @@
 import sys
 sys.path.append("../")
-
-import numpy as np
-import matplotlib.pyplot as plt
-from backend_scripts.utils import find_cue, saveload, plot_dgr
 import time as dt
-from backend_scripts.maze_env import MultiplePA_Maze
 from backend_scripts.utils import get_default_hp
-import multiprocessing as mp
-from functools import partial
-import tensorflow as tf
-from backend_scripts.model import Foster_MC_Agent
-from copy import deepcopy
+from backend_scripts.tasks import npapa_script
 
-
+'''
 def multiplepa_script(hp):
     exptname = hp['exptname']
     btstp = hp['btstp']
@@ -230,23 +221,22 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
     if hp['platform'] == 'server':
         print('Agent {} {} training dig rate: {}'.format(b, mtype, dgr))
     return mvpath, mdlw, dgr, sesspi, deepcopy(agent.memory)
-
+'''
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='6pa',platform='laptop')
-
-    hp['btstp'] = 1
+    hp = get_default_hp(task='12pa',platform='server')
+    hp['agenttype'] = 'sym'
+    hp['btstp'] = 30
     hp['savefig'] = True
     hp['savevar'] = False
-    hp['savegenvar'] = False
+    hp['savegenvar'] = True
 
     hp['recallbeta'] = 1
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '12pa_sym_xy_{}t_{}om_{}taua_{}xy_b{}_{}'.format(
-        hp['time'], hp['omitg'],
-        hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
+    hp['exptname'] = '{}_{}_xy_{}t_{}om_{}taua_{}xy_b{}_{}'.format(
+        hp['task'], hp['agenttype'],hp['time'], hp['omitg'], hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
 
-    totdgr, totpi, mvpath, agentmemory = multiplepa_script(hp)
+    totdgr, totpi, mvpath, agentmemory = npapa_script(hp)

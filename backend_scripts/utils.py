@@ -96,6 +96,7 @@ def get_default_hp(task, platform='laptop'):
     hp = {
         # Environment parameters
         'mazesize': 1.6,  # meters
+        'task': task,
         'tstep': 100,  # ms
         'time': 3600,  # seconds
         'render': False,
@@ -164,7 +165,7 @@ def get_default_hp(task, platform='laptop'):
         hp['cpucount'] = 1
     elif hp['platform'] == 'server':
         matplotlib.use('Qt5Agg')
-        hp['cpucount'] = 5 #mp.cpu_count()
+        hp['cpucount'] = 3 #mp.cpu_count()
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
     elif hp['platform'] == 'gpu':
         #print(tf.config.list_physical_devices('GPU'))
