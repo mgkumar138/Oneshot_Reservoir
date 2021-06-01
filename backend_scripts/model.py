@@ -286,9 +286,6 @@ class BackpropAgent:
         ''' critic parameters '''
         self.ncri = hp['ncri']
         self.vstate = tf.zeros([1, self.ncri])
-        self.vscale = hp['vscale']
-        #self.calpha = hp['tstep']/hp['ctau']
-        self.criact = choose_activation(hp['criact'],hp)
         self.eulerm = hp['eulerm']
         self.maxcritic = 0
         self.loss = 0
@@ -298,7 +295,6 @@ class BackpropAgent:
         self.model = BackpropModel(hp)
         self.ac = action_cells(hp)
         self.memory = Memory()
-        #self.goalmem = np.zeros([49,49])
         self.opt = tf.optimizers.RMSprop(learning_rate=self.lr)
         self.eb = hp['entbeta']
         self.va = hp['valalpha']
@@ -435,7 +431,6 @@ class Foster_MC_Agent:
         ''' memory '''
         self.memory = np.zeros([18,49+18+2])
         self.pastpre = 0
-        self.storebeta = hp['storebeta']
         self.recallbeta = hp['recallbeta']
 
         ''' Setup model: Place cell --> Action cells '''

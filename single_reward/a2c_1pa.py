@@ -183,23 +183,14 @@ if __name__ == '__main__':
 
     hp = get_default_hp(task='1pa',platform='laptop')
 
-    hp['epochs'] = 9
-    hp['tstep'] = 100  # deltat
     hp['btstp'] = 1
-    hp['trsess'] = 5
-    hp['time'] = 1000  # Tmax seconds
     hp['savefig'] = True
-    hp['savegenvar'] = True
-
-    ''' Model parameters '''
-    hp['xylr'] = 0.00015
-    hp['eulerm'] = 1
+    hp['savegenvar'] = False
 
     ''' model parameters '''
     hp['nhid'] = 8192  # number of hidden units ~ Expansion ratio = nhid/67
     hp['hidact'] = 'phia'  # phiA, phiB, relu, etc
     hp['sparsity'] = 3  # Threshold
-    hp['K'] = None  # Number of positive connections from all inputs (67) to each hidden unit
     hp['taug'] = 10000    # TD error time constant
 
     ''' Other Model parameters '''
@@ -208,12 +199,10 @@ if __name__ == '__main__':
     hp['maxspeed'] = 0.07  # step size per 100ms
     hp['entbeta'] = -0.001
     hp['valalpha'] = 0.5
-    hp['Rval'] = 4
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '1pa_hid_a2c_{}n_{}ra_{}lr_{}tg_{}dt_b{}_{}'.format(
-        hp['nhid'], hp['hidact'], hp['lr'],
-         hp['taug'], hp['tstep'], hp['btstp'], dt.monotonic())
+    hp['exptname'] = '1pa_hid_a2c_{}n_{}ra_{}lr_{}tg_b{}_{}'.format(
+        hp['nhid'], hp['hidact'], hp['lr'], hp['taug'], hp['btstp'], dt.monotonic())
 
     totlat, totdgr, mvpath, mdlw = singlepa_script(hp)

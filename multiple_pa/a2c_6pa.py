@@ -239,23 +239,17 @@ def setup_a2cagent_multiplepa_expt(hp,b):
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='6pa',platform='server')
+    hp = get_default_hp(task='6pa',platform='laptop')
 
-    hp['trsess'] = 20
-    hp['evsess'] = 2
-    hp['cuescl'] = 3
-    hp['tstep'] = 100  # deltat
-    hp['btstp'] = 500
-    hp['time'] = 1000  # Tmax seconds
+    hp['btstp'] = 1
     hp['savefig'] = True
     hp['savevar'] = False
-    hp['savegenvar'] = True
+    hp['savegenvar'] = False
 
     ''' model parameters '''
     hp['nhid'] = 8192  # number of hidden units ~ Expansion ratio = nhid/67
     hp['hidact'] = 'phia'  # phiA, phiB, relu, etc
     hp['sparsity'] = 3  # Threshold
-    hp['K'] = None  # Number of positive connections from all inputs (67) to each hidden unit
     hp['taug'] = 10000    # TD error time constant
 
     ''' Other Model parameters '''
@@ -264,12 +258,10 @@ if __name__ == '__main__':
     hp['maxspeed'] = 0.07  # step size per 100ms
     hp['entbeta'] = -0.001
     hp['valalpha'] = 0.5
-    hp['Rval'] = 4
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '6pa_hid_a2c_{}n_{}ra_{}lr_{}tg_{}dt_b{}_{}'.format(
-        hp['nhid'], hp['hidact'], hp['lr'],
-         hp['taug'], hp['tstep'], hp['btstp'], dt.monotonic())
+    hp['exptname'] = '6pa_hid_a2c_{}n_{}ra_{}lr_{}tg_b{}_{}'.format(
+        hp['nhid'], hp['hidact'], hp['lr'], hp['taug'], hp['btstp'], dt.monotonic())
 
     totlat, totdgr, totpi, diffw, mvpath, allw, alldyn = multiplepa_script(hp)

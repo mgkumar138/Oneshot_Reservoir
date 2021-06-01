@@ -201,31 +201,15 @@ if __name__ == '__main__':
 
     hp = get_default_hp(task='1pa',platform='laptop')
 
-    hp['epochs'] = 9
-    hp['tstep'] = 100  # deltat
     hp['btstp'] = 1
-    hp['trsess'] = 5
-    hp['time'] = 3600  # Tmax seconds
     hp['savefig'] = True
     hp['savegenvar'] = False
 
-    ''' Model parameters '''
-    hp['xylr'] = 0.00015
-    hp['eulerm'] = 1
-
-    hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.025
-    hp['storebeta'] = 1
     hp['recallbeta'] = 1
-
-    hp['Rval'] = 4
-    hp['taua'] = 250
-    hp['cuescl'] = 3
 
     hp['render'] = False  # visualise movement trial by trial
 
     hp['exptname'] = '1pa_sym_xy_{}t_{}om_{}taua_{}xy_b{}_{}'.format(
-        hp['time'], hp['omitg'],
-        hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
+        hp['time'], hp['omitg'], hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
 
     totlat, totdgr, mvpath, mdlw = singlepa_script(hp)

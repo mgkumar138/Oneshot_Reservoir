@@ -242,37 +242,16 @@ if __name__ == '__main__':
 
     hp = get_default_hp(task='6pa',platform='laptop')
 
-    hp['trsess'] = 20
-    hp['evsess'] = 2
-    hp['cuescl'] = 3
-    hp['tstep'] = 100  # deltat
     hp['btstp'] = 1
-    hp['time'] = 3600  # Tmax seconds
     hp['savefig'] = True
     hp['savevar'] = False
     hp['savegenvar'] = False
 
-    ''' Model parameters '''
-    hp['xylr'] = 0.00015  # 0.00015
-    hp['eulerm'] = 1
-
-    hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.025
-    hp['storebeta'] = 1
     hp['recallbeta'] = 1
-
-    hp['Rval'] = 4
-    hp['taua'] = 250
-    hp['cuescl'] = 3
-
-    # First 30seconds: place cell activity & action update switched off, sensory cue given
-    # After 30seconds: place cell activity & action update switched on, sensory cue silenced
-    hp['workmem'] = False
 
     hp['render'] = False  # visualise movement trial by trial
 
     hp['exptname'] = '6pa_sym_xy_{}t_{}om_{}taua_{}xy_b{}_{}'.format(
-        hp['time'], hp['omitg'],
-        hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
+        hp['time'], hp['omitg'], hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
 
     totlat, totdgr, totpi, mvpath = multiplepa_script(hp)

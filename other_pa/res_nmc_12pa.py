@@ -231,43 +231,21 @@ if __name__ == '__main__':
 
     hp = get_default_hp(task='6pa',platform='laptop')
 
-    hp['tstep'] = 100  # deltat
-    hp['btstp'] = 10
-    hp['trsess'] = 20
-    hp['evsess'] = 2
-    hp['time'] = 1000  # Tmax seconds
+    hp['btstp'] = 1
     hp['savefig'] = True
     hp['savevar'] = False
-    hp['savegenvar'] = True
+    hp['savegenvar'] = False
 
     ''' Model parameters '''
-    hp['xylr'] = 0.00015  # 0.00015
-    hp['eulerm'] = 1
     hp['stochlearn'] = False
-
-    hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.15
-    hp['mcscl'] = 1  # 1
-
-    hp['lr'] = 0.0005  # 0.0005
+    hp['lr'] = 0.0005
     hp['nrnn'] = 1024
-    hp['ract'] = 'tanh'
-    hp['recact'] = 'tanh'
-    hp['chaos'] = 1.5
-    hp['recwinscl'] = 1
-    hp['cp'] = [1,0.1]
-    hp['resns'] = 0.025
-
-    hp['Rval'] = 4
-    hp['taua'] = 250
-    hp['cuescl'] = 3
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '12pa_res_xy_{}sl_{}ch_0ns_{}n_{}smc_reset_{}ns_{}om_{}bm_{}tau_{}taua_{}xy_{}lr_{}dt_b{}_{}'.format(
-        hp['stochlearn'], hp['chaos'], hp['nrnn'],hp['usesmc'], hp['resns'], hp['omitg'], hp['mcbeta'],
-        hp['tau'], hp['taua'],hp['xylr'],
-        hp['lr'],  hp['tstep'],hp['btstp'],dt.monotonic())
+    hp['exptname'] = '12pa_res_xy_{}sl_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
+        hp['stochlearn'],hp['time'],hp['omitg'], hp['chaos'], hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],
+        hp['lr'],  hp['btstp'],dt.monotonic())
 
     totdgr, totpi, mvpath = multiplepa_script(hp)
 

@@ -204,42 +204,21 @@ def run_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=None):
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='1pa',platform='server')
+    hp = get_default_hp(task='1pa',platform='laptop')
 
-    hp['epochs'] = 9
-    hp['tstep'] = 100  # deltat
-    hp['btstp'] = 30
-    hp['trsess'] = 5
-    hp['time'] = 600  # Tmax seconds
+    hp['btstp'] = 1
     hp['savefig'] = True
-    hp['savegenvar'] = True
+    hp['savegenvar'] = False
 
     ''' Model parameters '''
-    hp['xylr'] = 0.00015
-    hp['eulerm'] = 1
     hp['stochlearn'] = False
-
-    hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.15
-
     hp['lr'] = 0.0005
     hp['nrnn'] = 1024
-    hp['ract'] = 'tanh'
-    hp['recact'] = 'tanh'
-    hp['chaos'] = 1.5
-    hp['recwinscl'] = 1
-    hp['cp'] = [1,0.1]
-    hp['resns'] = 0.025
-
-    hp['Rval'] = 4
-    hp['taua'] = 250
-    hp['cuescl'] = 3
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '1pa_res_xy_{}sl_{}smc_reset_{}om_{}bm_{}n_{}tau_{}taua_{}xy_{}lr_{}dt_b{}_{}'.format(
-        hp['stochlearn'],    hp['usesmc'], hp['omitg'], hp['mcbeta'],
-        hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],
-        hp['lr'],  hp['tstep'],hp['btstp'],dt.monotonic())
+    hp['exptname'] = '1pa_res_xy_{}sl_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
+        hp['stochlearn'],hp['time'],hp['omitg'], hp['chaos'], hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],
+        hp['lr'],  hp['btstp'],dt.monotonic())
 
     totlat, totdgr, mvpath, mdlw = singlepa_script(hp)

@@ -132,16 +132,23 @@ def get_default_hp(task, platform='laptop'):
         'ncri': 1,
 
         # reservoir parameters
-        'resact': 'tanh',
-        'resrecact': 'tanh',
+        'ract': 'tanh',
+        'recact': 'tanh',
         'chaos': 1.5,
         'cp': [1, 0.1],
         'resns': 0.025,
         'recwinscl': 1,
+        'nrnn': 1024,
 
         # learning parameters
         'taug': 10000,
         'eulerm': 1,  # euler approximation for TD error 1 - forward, 0 - backward
+
+        # motor controller parameters
+        'omitg':0.025,
+        'mcbeta': 4,
+        'xylr': 0.00015,
+        'recallbeta': 1,
 
         # others
         'savevar': False,

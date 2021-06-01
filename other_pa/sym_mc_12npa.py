@@ -236,27 +236,12 @@ if __name__ == '__main__':
 
     hp = get_default_hp(task='6pa',platform='laptop')
 
-    hp['tstep'] = 100  # deltat
     hp['btstp'] = 1
-    hp['trsess'] = 20
-    hp['evsess'] = 2
-    hp['time'] = 3600  # Tmax seconds
     hp['savefig'] = True
     hp['savevar'] = False
     hp['savegenvar'] = False
 
-    ''' Model parameters '''
-    hp['xylr'] = 0.00015  # 0.00015
-    hp['eulerm'] = 1
-
-    hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.025
-    hp['storebeta'] = 1
     hp['recallbeta'] = 1
-
-    hp['Rval'] = 4
-    hp['taua'] = 250
-    hp['cuescl'] = 3
 
     hp['render'] = False  # visualise movement trial by trial
 
@@ -265,9 +250,3 @@ if __name__ == '__main__':
         hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
 
     totdgr, totpi, mvpath, agentmemory = multiplepa_script(hp)
-
-    # plt.figure()
-    # for i in range(2):
-    #     plt.subplot(1, 2, i + 1)
-    #     plt.imshow(agentmemory[i])
-    #     plt.colorbar()
