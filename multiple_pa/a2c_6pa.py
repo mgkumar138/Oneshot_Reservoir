@@ -254,4 +254,4 @@ if __name__ == '__main__':
     hp['exptname'] = '{}_hid_{}_{}n_{}ra_{}lr_{}tg_b{}_{}'.format(
         hp['task'],hp['agenttype'], hp['nhid'], hp['hidact'], hp['lr'], hp['taug'], hp['btstp'], dt.monotonic())
 
-    totlat, totdgr, totpi, diffw, mvpath, allw, alldyn = multiplepa_script(hp)
+    totlat, totdgr, totpi, mvpath = multiplepa_script(hp)

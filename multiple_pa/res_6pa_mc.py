@@ -265,5 +265,5 @@ if __name__ == '__main__':
         hp['task'],hp['agenttype'], hp['stochlearn'],hp['time'],hp['omitg'], hp['chaos'],
         hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],  hp['lr'],  hp['btstp'],dt.monotonic())
 
-    totlat, totdgr, totpi, diffw, mvpath, allw, alldyn = multiplepa_script(hp)
+    totlat, totdgr, totpi, mvpath = multiplepa_script(hp)
 

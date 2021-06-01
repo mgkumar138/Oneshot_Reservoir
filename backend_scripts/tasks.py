@@ -49,7 +49,7 @@ def npapa_script(hp):
     plot_dgr(totdgr, scl, 231, 4)
     plot_dgr(totpi, scl, 232, 4)
 
-    if len(agentmemory)>0:
+    if agentmemory:
         plt.subplot(233)
         plt.imshow(agentmemory[1],aspect='auto')
         plt.title('Memory')
@@ -510,7 +510,6 @@ def multiplepa_script(hp):
     totlat = np.zeros([btstp, (hp['trsess'] + hp['evsess'] * 3)])
     totdgr = np.zeros([btstp, 6])
     totpi = np.zeros_like(totdgr)
-    diffw = np.zeros([btstp, 2, 3])  # bt, number of layers, modelcopy
     scl = hp['trsess'] // 20  # scale number of sessions to Tse et al., 2007
 
     pool = mp.Pool(processes=hp['cpucount'])
@@ -527,7 +526,7 @@ def multiplepa_script(hp):
 
     # Start experiment
     for b in range(btstp):
-        totlat[b], totdgr[b], totpi[b], diffw[b], mvpath, allw, alldyn = x[b]
+        totlat[b], totdgr[b], totpi[b], mvpath = x[b]
 
     plt.figure(figsize=(15, 8))
     plt.gcf().text(0.01, 0.01, exptname, fontsize=10)
@@ -536,12 +535,6 @@ def multiplepa_script(hp):
     plt.errorbar(x=np.arange(totlat.shape[1]), y =np.mean(totlat, axis=0), yerr=np.std(totlat,axis=0), marker='s')
 
     plot_dgr(totdgr, scl, 332, 6)
-
-    plt.subplot(333)
-    df = pd.DataFrame(np.mean(diffw[:,-2:], axis=0), columns=['OPA', 'NPA', 'NM'], index=['Critic', 'Actor'])
-    ds = pd.DataFrame(np.std(diffw[:,-2:], axis=0), columns=['OPA', 'NPA', 'NM'], index=['Critic', 'Actor'])
-    df.plot.bar(rot=0, ax=plt.gca(), yerr=ds)
-    plt.title(np.round(np.mean(totpi,axis=0),1))
 
     env = Maze(hp)
 
@@ -570,7 +563,7 @@ def multiplepa_script(hp):
         saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
                  [totlat, totdgr, totpi])
 
-    return totlat, totdgr, totpi, diffw, mvpath, allw, alldyn
+    return totlat, totdgr, totpi, mvpath
 
 
 def res_multiplepa_expt(hp,b):
@@ -592,7 +585,6 @@ def res_multiplepa_expt(hp,b):
     # store performance
     lat = np.zeros(trsess + evsess * 3)
     dgr = np.zeros(6)
-    diffw = np.zeros([2, 3])
     pi = np.zeros_like(dgr)
 
     # Start experiment
@@ -613,20 +605,13 @@ def res_multiplepa_expt(hp,b):
     lat[trsess + evsess:trsess + evsess * 2], mvpath[4],  npaw, dgr[4], pi[4] = run_res_multiple_expt(b,'npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
     lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_res_multiple_expt(b, 'nm', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
 
-    # Summarise weight change of layers
-    for i, k in enumerate([opaw, npaw, nmw]):
-        for j in np.arange(-2,0):
-            diffw[j, i] = np.sum(abs(k[j] - trw[j])) / np.size(k[j])
-
-    allw = [trw, opaw, npaw, nmw]
-
     if hp['savevar']:
         saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
-                 [rdyn, gdyn, mvpath, lat, dgr, pi, diffw])
+                 [rdyn, gdyn, mvpath, lat, dgr, pi])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
 
-    return lat, dgr, pi, diffw, mvpath, allw, alldyn
+    return lat, dgr, pi, mvpath
 
 
 def run_res_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None, nocue=None, noreward=None):
@@ -763,7 +748,6 @@ def a2c_multiplepa_expt(hp,b):
     # store performance
     lat = np.zeros(trsess + evsess * 3)
     dgr = np.zeros(6)
-    diffw = np.zeros([2, 3])
     pi = np.zeros_like(dgr)
 
     # Start experiment
@@ -787,20 +771,13 @@ def a2c_multiplepa_expt(hp,b):
     lat[trsess + evsess:trsess + evsess * 2], mvpath[4],  npaw, dgr[4], pi[4] = run_a2c_multiplepa_expt(b,'npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
     lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_a2c_multiplepa_expt(b, 'nm', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
 
-    # Summarise weight change of layers
-    for i, k in enumerate([opaw, npaw, nmw]):
-        for j in np.arange(-2,0):
-            diffw[j, i] = np.sum(abs(k[j] - trw[j])) / np.size(k[j])
-
-    allw = [trw, opaw, npaw, nmw]
-
     if hp['savevar']:
         saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
-                 [rdyn, qdyn, cdyn, tdyn, wtrk, mvpath, lat, dgr, pi, diffw])
+                 [rdyn, qdyn, cdyn, tdyn, wtrk, mvpath, lat, dgr, pi])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
 
-    return lat, dgr, pi, diffw, mvpath, allw, alldyn
+    return lat, dgr, pi, mvpath
 
 def run_a2c_multiplepa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None, nocue=None, noreward=None):
     if mtype == 'train':
@@ -1088,7 +1065,7 @@ def singlepa_script(hp):
     totlat[totlat == 0] = np.nan
     plt.figure(figsize=(15, 8))
     plt.gcf().text(0.01, 0.01, exptname, fontsize=12)
-    plt.subplot(331)
+    plt.subplot(241)
     plt.ylabel('Latency (s)')
     totlat *=hp['tstep']/1000
     plt.title('Latency per learning trial, change target every {} trials'.format(trsess))
@@ -1097,17 +1074,28 @@ def singlepa_script(hp):
     for i in range(epochs):
         plt.axvline(i*trsess,color='r')
 
-    plt.subplot(334)
+    plt.subplot(242)
     plt.title('Visit Ratio per Epoch')
     dgrmean = np.mean(totdgr, axis=0)
     dgrstd = np.std(totdgr, axis=0)
     plt.errorbar(x=np.arange(epochs), y=dgrmean, yerr=dgrstd/btstp)
     plt.plot(dgrmean, 'k', linewidth=3)
 
+    if hp['agenttype'] != 'a2c':
+        plt.subplot(243)
+        plt.title('X')
+        plt.imshow(mdlw[:49, 0].reshape(7, 7))
+        plt.colorbar()
+
+        plt.subplot(244)
+        plt.title('Y')
+        plt.imshow(mdlw[:49, 1].reshape(7, 7))
+        plt.colorbar()
+
     mvpath = totpath[0]
     midx = np.linspace(0,epochs-1,3,dtype=int)
     for i in range(3):
-        plt.subplot(3,3,i+7)
+        plt.subplot(2,4,i+5)
         plt.title('Probe trial {}'.format(midx[i]))
         plt.plot(mvpath[midx[i],:-1,0],mvpath[midx[i],:-1,1],'k')
         rloc = mvpath[midx[i],-1]
