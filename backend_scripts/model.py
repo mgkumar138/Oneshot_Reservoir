@@ -36,9 +36,6 @@ class Res_MC_Agent:
 
         self.pc = place_cells(hp)
         self.model = Res_Model(hp)
-        self.usesmc = hp['usesmc']
-        #self.nmc = tf.keras.models.load_model('../motor_controller/pcin_motor_controller_model')
-        #self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_model_512_2021-05-28')
         self.ac = action_cells(hp)
 
     def act(self, state, cue_r_fb, mstate):
@@ -46,16 +43,11 @@ class Res_MC_Agent:
 
         state_cue_fb = tf.cast(tf.concat([cpc, cue_r_fb],axis=0)[None, :],dtype=tf.float32)  # combine all inputs
 
-        #h, x, g, xy = self.model(tf.zeros_like(state_cue_fb), mstate)
         h, x, g, xy = self.model(state_cue_fb, mstate)
         self.goal = g
 
         ''' move to goal using motor controller: MC '''
-        if self.usesmc:
-            qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
-        else:
-            #gpc = tf.cast(self.pc.sense(g),dtype=tf.float32)
-            qhat = self.mc(tf.concat([self.goal,xy],axis=1))
+        qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
 
         return state_cue_fb, cpc, qhat, xy, h, x, g
 
@@ -83,7 +75,7 @@ class Res_MC_Agent:
                         M = 0
                     self.gstate = (1 - self.alpha) * self.gstate + self.alpha * gns
                     eg = tf.matmul(h, (gns - self.gstate), transpose_a=True)
-                    dwg = self.lr * eg * M #* self.tstep * R
+                    dwg = self.lr * eg * M
                     self.model.layers[-2].set_weights([self.model.layers[-2].get_weights()[0] + dwg])
                 else:
                     eg = tf.matmul(h, (xy2 - g), transpose_a=True)
@@ -166,9 +158,8 @@ class RNN_Cell(tf.keras.layers.Layer):
         rit = self.resact(xit)
         return rit, xit
 
-def motor_controller2(goal, xy, ac, q=0, beta=4, omitg=0.0005):
+def motor_controller(goal, xy, ac, q=0, beta=4, omitg=0.025):
     if tf.norm(goal[0], ord=2) > omitg:
-    #if tf.norm(goal[0]-xy[0], ord=2) > omitg:
         dircomp = tf.cast(goal - xy, dtype=tf.float32)
         qk = tf.matmul(dircomp, ac.aj)
         sattw = tf.nn.softmax(beta * qk)
@@ -177,15 +168,6 @@ def motor_controller2(goal, xy, ac, q=0, beta=4, omitg=0.0005):
     qns = sattw + q
     return qns
 
-
-def motor_controller(goal, xy, ac, q=0, beta=4, omitg=0.15):
-    dircomp = tf.cast(goal - xy, dtype=tf.float32)
-    qk = tf.matmul(dircomp, ac.aj)
-    sattw = tf.nn.softmax(beta * qk)
-    if np.max(sattw) < omitg:
-        sattw = tf.zeros([1, ac.nact])
-    qns = sattw + q
-    return qns
 
 class place_cells():
     def __init__(self, hp):
@@ -232,7 +214,6 @@ class action_cells():
         self.qalpha = self.tstep / hp['tau']
         self.qstate = tf.zeros((1, self.nact))  # initialise actor units to 0
         self.ns = np.sqrt(1 / self.qalpha) * hp['actns']
-        #self.maxactor = deque(maxlen=500)
 
         wminus = hp['actorw-']  # -1
         wplus = hp['actorw+']  # 1
@@ -442,7 +423,6 @@ class Foster_MC_Agent:
         self.tstep = hp['tstep']
 
         ''' agent parameters '''
-        self.lr = hp['lr']
         self.mcbeta = hp['mcbeta']
         self.omitg = hp['omitg']
         self.alpha = hp['tstep']/hp['tau']
@@ -470,7 +450,6 @@ class Foster_MC_Agent:
 
         xy = self.model(cpc[None, :])
 
-        #self.goal = self.recall(cue_r_fb=cue_r_fb)
         self.goal = self.recall(cue_r_fb=state_cue_fb)
 
         ''' move to goal using motor controller: MC '''
@@ -483,27 +462,11 @@ class Foster_MC_Agent:
             memidx = np.argmax(cue_r_fb)-49
             if R>0:
                 self.memory[memidx] = np.concatenate([cue_r_fb,xy],axis=1)
-                #print(self.memory[memidx,-2:])
             else:
                 self.memory[memidx] = 0
-            # memidx = np.argmax(cue_r_fb)-49
-            # if R>0:
-            #     self.memory[memidx] = np.concatenate([cue_r_fb[None,:],xy],axis=1)
-            # else:
-            #     self.memory[memidx] = 0
-            # qk = tf.matmul(cue_r_fb[None, :], self.memory[:, :-2], transpose_b=True)
-            # attw = tf.nn.softmax(self.storebeta * qk)
-            # memidx = np.random.choice(range(len(self.memory)), p=attw.numpy()[0])
-            # self.memory[memidx] = np.concatenate([cue_r_fb[None,:],xy],axis=1)
-            # if R>0:
-            #     self.memory[memidx] = np.concatenate([cue_r_fb[None,:],xy],axis=1)
-            # else:
-            #     self.memory[memidx] = 0
-            #     self.memory = np.zeros_like(self.memory)
 
     def recall(self,cue_r_fb):
         # attention mechanism to query memory to retrieve goal coord
-        #qk = tf.matmul(cue_r_fb[None,:], self.memory[:,:-2], transpose_b=True)
         qk = tf.matmul(cue_r_fb, self.memory[:, :-2], transpose_b=True)
         At = tf.nn.softmax(self.recallbeta * qk)
         gt = tf.matmul(At, self.memory[:, -2:])  # goalxy
@@ -545,120 +508,3 @@ class Foster_Model(tf.keras.Model):
         xy = self.xy(pc)
         return xy
 
-class SimpleAgent:
-    def __init__(self, hp, env):
-        self.env = env
-        self.tstep = hp['tstep']
-
-        self.taug = hp['taug']
-        self.beg = (1 - (self.tstep / self.taug))  # taur for backward euler continuous TD
-        self.feg = (1 + (self.tstep / self.taug))  # taur for forward euler continuous TD
-        self.npc = hp['npc']
-        self.nact = hp['nact']
-        self.workmem = hp['workmem']
-        self.calpha = hp['tstep'] / hp['tau']
-
-        ''' hidden param '''
-        self.lr = hp['lr']
-        self.hstate = tf.zeros([1,hp['nhid']])
-        self.hact = choose_activation(hp['hidact'], hp)
-        self.nhid = hp['nhid']
-
-        ''' critic parameters '''
-        self.ncri = hp['ncri']
-        self.vstate = tf.zeros([1, self.ncri])
-        self.vscale = hp['vscale']
-        self.criact = choose_activation(hp['criact'],hp)
-        self.eulerm = hp['eulerm']
-        self.maxcritic = 0
-
-        ''' Setup model: Place cell --> Action cells '''
-        self.pc = place_cells(hp)
-        self.model = SimpleModel(hp)
-        self.ac = action_cells(hp)
-
-    def act(self, state, cue):
-        cpc = self.pc.sense(state)  # convert coordinate info to place cell activity
-        cpc_cue = np.concatenate([cpc, cue])  # combine all inputs
-
-        if self.workmem and self.env.i <= self.env.workmemt:
-            # silence state presentation during cue presentation
-            cpc_cue[:self.npc ** 2] = 0
-
-        # if self.env.done:
-        #     # silence all inputs after trial ends
-        #     cpc_cue = np.zeros_like(cpc_cue)
-
-        ''' Predict next action '''
-        x, q, c = self.model(tf.cast(cpc_cue[None, :], dtype=tf.float32))
-
-
-        return x, q, c
-
-    def learn(self, s1, cue_r1_fb, pre, post, R, v, plasticity=True):
-        ''' Hebbian rule: lr * TD * eligibility trace '''
-
-        _, _, c2 = self.act(s1, cue_r1_fb)
-        self.vstate = (1 - self.calpha) * self.vstate + self.calpha * c2
-        v2 = self.criact(self.vstate)
-
-        if self.eulerm == 0:
-            # backward euler method
-            tderr = R + tf.reshape(tf.reduce_mean(self.beg * v2 - v),[1,1]) / self.tstep
-        elif self.eulerm == 1:
-            # forward euler method
-            tderr = R + tf.reshape(tf.reduce_mean(v2 - self.feg * v), [1, 1]) / self.tstep
-        self.tderr = tf.reshape(tderr,(1,1))
-
-        if plasticity:
-            dwc = self.vscale * self.tstep * self.lr * tderr * tf.transpose(pre)
-            self.model.layers[-2].set_weights([self.model.layers[-2].get_weights()[0] + dwc])
-
-            ea = tf.linalg.matmul(pre, tf.cast(post, dtype=tf.float32), transpose_a=True)
-            dwa = self.tstep * self.lr * tderr * ea
-            self.model.layers[-1].set_weights([self.model.layers[-1].get_weights()[0] + dwa])
-        return tderr, v2
-
-    def agent_reset(self):
-        self.vstate = tf.zeros([1, self.ncri])
-        self.rstate = tf.zeros([1, self.nhid])
-
-class SimpleModel(tf.keras.Model):
-    def __init__(self, hp):
-        super(SimpleModel, self).__init__()
-        self.nact = hp['nact']
-        self.ncri = hp['ncri']
-        self.nhid = hp['nhid']
-        self.npc = hp['npc']
-        self.hidscale = 1# hp['hidscale']
-        self.crins = np.sqrt(hp['tau']/hp['tstep']) * hp['crins']
-        self.hidact = hp['hidact']
-
-        if hp['controltype'] == 'expand':
-            self.controltype = (self.nhid // (self.npc ** 2 + hp['cuesize'])) + 1  # tile factor 16 (1024) or 80 (8192)
-
-        elif hp['controltype'] == 'hidden':
-            if hp['K'] is None:
-                hidwin = tf.keras.initializers.RandomUniform(minval=-1, maxval=1, seed=None)
-            else:
-                hidwin = tf.constant_initializer(set_excitatory(matsize=(67,self.nhid),K=hp['K']))
-            self.controltype = tf.keras.layers.Dense(units=self.nhid,
-                                                     activation=choose_activation(self.hidact, hp),
-                                                     use_bias=False, name='hidden',
-                                                     kernel_initializer=hidwin)
-        else:
-            self.controltype = choose_activation(self.hidact,hp)
-
-        self.critic = tf.keras.layers.Dense(units=self.ncri, activation='linear',
-                                            use_bias=False, kernel_initializer='zeros', name='critic')
-        self.actor = tf.keras.layers.Dense(units=self.nact, activation='linear',
-                                           use_bias=False, kernel_initializer='zeros', name='actor')
-
-    def call(self, inputs):
-        if isinstance(self.controltype, int):
-            r = self.hidscale * tf.tile(inputs, [1, self.controltype])
-        else:
-            r = self.hidscale * self.controltype(inputs)
-        c = self.critic(r) + tf.random.normal(shape=(1,self.ncri),stddev=self.crins)
-        q = self.actor(r)
-        return r, q, c

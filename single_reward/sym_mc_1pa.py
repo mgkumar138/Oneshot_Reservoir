@@ -205,7 +205,7 @@ if __name__ == '__main__':
     hp['tstep'] = 100  # deltat
     hp['btstp'] = 1
     hp['trsess'] = 5
-    hp['time'] = 600  # Tmax seconds
+    hp['time'] = 3600  # Tmax seconds
     hp['savefig'] = True
     hp['savegenvar'] = False
 
@@ -224,8 +224,8 @@ if __name__ == '__main__':
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '1pa_sym_xy_{}om_{}mb_{}taua_{}xy_{}dt_b{}_{}'.format(
-        hp['omitg'], hp['mcbeta'],
-        hp['taua'],hp['xylr'],hp['tstep'],hp['btstp'],dt.monotonic())
+    hp['exptname'] = '1pa_sym_xy_{}t_{}om_{}taua_{}xy_b{}_{}'.format(
+        hp['time'], hp['omitg'],
+        hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
 
     totlat, totdgr, mvpath, mdlw = singlepa_script(hp)

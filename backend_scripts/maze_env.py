@@ -8,11 +8,7 @@ class Maze:
         self.hp=hp
         self.tstep = hp['tstep']
         self.maxstep = hp['time']*(1000 // self.tstep) # max training time
-        self.workmem = hp['workmem']
-        self.workmemt = 3 * (1000 // self.tstep) # cue presentation time
         self.normax = 60 * (1000 // self.tstep)  # Non-rewarded probe test max time 60s
-        if self.workmem:
-            self.normax += self.workmemt
         self.au = 1.6
         self.rrad = 0.03
         self.testrad = 0.03
@@ -37,8 +33,6 @@ class Maze:
             for y in holes:
                 self.holoc[i] = np.array([y, x])
                 i+=1
-
-        self.landmark = np.array([self.holoc[22],self.holoc[26]])
 
         if self.rendercall:
             plt.ion()
@@ -107,28 +101,12 @@ class Maze:
     def step(self, at):
         self.i+=1  # track number of steps taken
         R = 0
-
-        if self.i>self.workmemt and self.workmem:
-            # silence cue during movement in working memory task
-            cue = np.zeros_like(self.cue)
-        elif self.i<=self.workmemt and self.workmem:
-            # present cue during first 5 seconds, do not update agent location
-            at = np.zeros_like(at)
-            cue = self.cue
-        else:
-            # present cue at all time steps when not working memory task
-            cue = self.cue
+        cue = self.cue
 
         if self.stay:
             # stay at reward location if reached target
             at = np.zeros_like(at)
         xt1 = self.x + at  # update new location
-
-        if self.workmem:
-            for ldmk in self.landmark:
-                if np.linalg.norm(ldmk-xt1,2)<0.1:
-                    xt1 -= at
-                    R = self.punish
 
         ax = np.concatenate([(-self.au / 2 < xt1), (self.au / 2 > xt1)]) # -xy,+xy
         if np.sum(ax)<4:
@@ -159,10 +137,7 @@ class Maze:
                     self.dgr = 100 * self.cordig / (self.totdig + 1e-5)
                 else:
                     # visit ratio at correct target over total time
-                    if self.workmem:
-                        self.dgr = np.round(100 * self.cordig / (self.normax - self.workmemt), 5)
-                    else:
-                        self.dgr = np.round(100 * self.cordig / (self.normax), 5)
+                    self.dgr = np.round(100 * self.cordig / (self.normax), 5)
 
         elif self.t in self.noct: # non-cued trial
             reward = 0
@@ -245,10 +220,7 @@ class Navex:
         self.workmem = hp['workmem']
         self.tstep = hp['tstep']
         self.maxstep = hp['time']*(1000 // self.tstep) # Train max time, 1hr
-        self.workmemt = 3 * (1000 // self.tstep) # cue presentation time
         self.normax = 60 * (1000 // self.tstep)  # Non-rewarded probe test max time 60s
-        if self.workmem:
-            self.normax += self.workmemt
         self.au = 1.6
         self.rrad = 0.03
         self.bounpen = 0.01
@@ -343,37 +315,24 @@ class Navex:
         self.i+=1  # track number of steps taken
         R = 0
 
-        if self.i>self.workmemt and self.workmem:
-            # silence cue during movement in working memory task
-            cue = np.zeros_like(self.cue)
-            boundflag = True
-        elif self.i<=self.workmemt and self.workmem:
-            # present cue during first 5 seconds, do not update agent location
-            at = np.zeros_like(at)
-            cue = self.cue
-            boundflag = False
-        else:
-            # present cue at all time steps when not working memory task
-            cue = self.cue
-            boundflag = True
+        cue = self.cue
 
         if self.stay:
             # stay at reward location if reached target
             at = np.zeros_like(at)
         xt1 = self.x + at  # update new location
 
-        if boundflag:
-            ax = np.concatenate([(-self.au / 2 < xt1), (self.au / 2 > xt1)]) # -xy,+xy
-            if np.sum(ax)<4:
-                self.hitbound = True
-                if np.argmin(ax)>1: # if hit right or top, bounce back by 0.01
-                    xt1 -=at
-                    xt1 += self.bounpen*(ax[2:]-1)
-                elif np.argmin(ax)<=1: # if hit left or bottom, bounce back by 0.01
-                    xt1 -=at
-                    xt1 -= self.bounpen*(ax[:2]-1)
-            else:
-                self.hitbound = False
+        ax = np.concatenate([(-self.au / 2 < xt1), (self.au / 2 > xt1)]) # -xy,+xy
+        if np.sum(ax)<4:
+            self.hitbound = True
+            if np.argmin(ax)>1: # if hit right or top, bounce back by 0.01
+                xt1 -=at
+                xt1 += self.bounpen*(ax[2:]-1)
+            elif np.argmin(ax)<=1: # if hit left or bottom, bounce back by 0.01
+                xt1 -=at
+                xt1 -= self.bounpen*(ax[:2]-1)
+        else:
+            self.hitbound = False
 
         if self.t in self.nort: # non-rewarded probe trial
             reward = 0
@@ -390,10 +349,7 @@ class Navex:
             if self.i == self.normax:
                 self.done = True
                 if self.mtype == 1:
-                    if self.workmem:
-                        self.dgr = np.round(100 * self.cordig / (self.normax - self.workmemt), 5)
-                    else:
-                        self.dgr = np.round(100 * self.cordig / self.normax, 5)
+                    self.dgr = np.round(100 * self.cordig / self.normax, 5)
                 else:
                     self.dgr = 100 * self.cordig / (self.totdig + 1e-10)
 
@@ -435,11 +391,7 @@ class MultiplePA_Maze:
         self.hp=hp
         self.tstep = hp['tstep']
         self.maxstep = hp['time']*(1000 // self.tstep) # max training time
-        self.workmem = hp['workmem']
-        self.workmemt = 3 * (1000 // self.tstep) # cue presentation time
         self.normax = 60 * (1000 // self.tstep)  # Non-rewarded probe test max time 60s
-        if self.workmem:
-            self.normax += self.workmemt
         self.au = 1.6
         self.rrad = 0.03
         self.testrad = 0.03
@@ -457,7 +409,6 @@ class MultiplePA_Maze:
         self.cue_size = self.smell.shape[1]
         self.holoc = np.zeros([49,2])
 
-        #self.locseq = np.random.choice(np.arange(36),36,replace=False).reshape(3,12)
         self.loci = 0
         self.opaloc = np.array([8, 13, 18, 30, 35, 40])
         self.npaloc = np.arange(49)
@@ -471,8 +422,6 @@ class MultiplePA_Maze:
             for y in holes:
                 self.holoc[i] = np.array([y, x])
                 i+=1
-
-        self.landmark = np.array([self.holoc[22],self.holoc[26]])
 
         if self.rendercall:
             plt.ion()
@@ -548,27 +497,12 @@ class MultiplePA_Maze:
         self.i+=1  # track number of steps taken
         R = 0
 
-        if self.i>self.workmemt and self.workmem:
-            # silence cue during movement in working memory task
-            cue = np.zeros_like(self.cue)
-        elif self.i<=self.workmemt and self.workmem:
-            # present cue during first 5 seconds, do not update agent location
-            at = np.zeros_like(at)
-            cue = self.cue
-        else:
-            # present cue at all time steps when not working memory task
-            cue = self.cue
+        cue = self.cue
 
         if self.stay:
             # stay at reward location if reached target
             at = np.zeros_like(at)
         xt1 = self.x + at  # update new location
-
-        if self.workmem:
-            for ldmk in self.landmark:
-                if np.linalg.norm(ldmk-xt1,2)<0.1:
-                    xt1 -= at
-                    R = self.punish
 
         ax = np.concatenate([(-self.au / 2 < xt1), (self.au / 2 > xt1)]) # -xy,+xy
         if np.sum(ax)<4:

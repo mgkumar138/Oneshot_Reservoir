@@ -234,23 +234,23 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='6pa',platform='server')
+    hp = get_default_hp(task='6pa',platform='laptop')
 
     hp['tstep'] = 100  # deltat
-    hp['btstp'] = 3
+    hp['btstp'] = 1
     hp['trsess'] = 20
     hp['evsess'] = 2
-    hp['time'] = 1000  # Tmax seconds
+    hp['time'] = 3600  # Tmax seconds
     hp['savefig'] = True
-    hp['savevar'] = True
-    hp['savegenvar'] = True
+    hp['savevar'] = False
+    hp['savegenvar'] = False
 
     ''' Model parameters '''
     hp['xylr'] = 0.00015  # 0.00015
     hp['eulerm'] = 1
 
     hp['mcbeta'] = 4  # 4
-    hp['omitg'] = 0.15
+    hp['omitg'] = 0.025
     hp['storebeta'] = 1
     hp['recallbeta'] = 1
 
@@ -260,9 +260,9 @@ if __name__ == '__main__':
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '12npa_sym_xy_{}t_{}om_{}mb_{}taua_{}xy_{}dt_b{}_{}'.format(
-        hp['time'], hp['omitg'], hp['mcbeta'],
-        hp['taua'],hp['xylr'],hp['tstep'],hp['btstp'],dt.monotonic())
+    hp['exptname'] = '12pa_sym_xy_{}t_{}om_{}taua_{}xy_b{}_{}'.format(
+        hp['time'], hp['omitg'],
+        hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
 
     totdgr, totpi, mvpath, agentmemory = multiplepa_script(hp)
 
