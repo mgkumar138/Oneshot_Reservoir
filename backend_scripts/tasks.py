@@ -22,7 +22,6 @@ def npapa_script(hp):
     print(exptname)
 
     # store performance
-    #totlat = np.zeros([btstp, (hp['trsess'] + hp['evsess'] * 3)])
     totdgr = np.zeros([btstp, 4])
     totpi = np.zeros_like(totdgr)
     scl = hp['trsess'] // 20  # scale number of sessions to Tse et al., 2007
@@ -41,18 +40,33 @@ def npapa_script(hp):
 
     # Start experiment
     for b in range(btstp):
-        totdgr[b], totpi[b], mvpath = x[b]
+        totdgr[b], totpi[b], mvpath, agentmemory, allw = x[b]
         #totlat[b], totdgr[b], totpi[b], diffw[b], mvpath, allw, alldyn, agent = control_multiplepa_expt(hp,b)
 
     plt.figure(figsize=(15, 8))
     plt.gcf().text(0.01, 0.01, exptname, fontsize=10)
 
-    plot_dgr(totdgr, scl, 131, 4)
-    plot_dgr(totpi, scl, 132, 4)
+    plot_dgr(totdgr, scl, 231, 4)
+    plot_dgr(totpi, scl, 232, 4)
+
+    if len(agentmemory)>0:
+        plt.subplot(233)
+        plt.imshow(agentmemory[1],aspect='auto')
+        plt.title('Memory')
+        plt.colorbar()
+
+        plt.subplot(234)
+        plt.imshow(allw[-1][0][:,0].reshape(7,7),aspect='auto')
+        plt.title('X')
+        plt.colorbar()
+        plt.subplot(235)
+        plt.imshow(allw[-1][0][:,1].reshape(7,7),aspect='auto')
+        plt.title('Y')
+        plt.colorbar()
 
     import matplotlib.cm as cm
     col = cm.rainbow(np.linspace(0, 1, 12))
-    plt.subplot(1, 3, 3)
+    plt.subplot(2, 3, 6)
     k = mvpath
     for pt in range(12):
         plt.plot(np.array(k[pt])[:-1, 0], np.array(k[pt])[:-1, 1], color=col[pt], alpha=0.5, linewidth=1, zorder=1)
@@ -126,7 +140,7 @@ def res_12pa_expt(hp,b):
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
 
-    return dgr, pi, mvpath
+    return dgr, pi, mvpath, _, [trw, npa1w]
 
 
 def run_res_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None, nocue=None, noreward=None):
@@ -265,7 +279,7 @@ def a2c_12pa_expt(hp,b):
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
 
-    return dgr, pi, mvpath
+    return dgr, pi, mvpath, _, [trw, npa1w]
 
 def run_a2c_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None, nocue=None, noreward=None):
     if mtype!='train':
@@ -520,7 +534,6 @@ def multiplepa_script(hp):
     plt.subplot(331)
     plt.title('Latency')
     plt.errorbar(x=np.arange(totlat.shape[1]), y =np.mean(totlat, axis=0), yerr=np.std(totlat,axis=0), marker='s')
-    #plt.plot(np.mean(totlat,axis=0),linewidth=3)
 
     plot_dgr(totdgr, scl, 332, 6)
 

@@ -222,7 +222,7 @@ if __name__ == '__main__':
 
     hp['stochlearn'] = True
     hp['lr'] = 0.0005
-    hp['nrnn'] = 256
+    hp['nrnn'] = 1024
     hp['taua'] = 2500
 
     hp['render'] = False  # visualise movement trial by trial
