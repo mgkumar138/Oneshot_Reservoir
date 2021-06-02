@@ -7,9 +7,9 @@ from backend_scripts.tasks import singlepa_script
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='1pa',platform='laptop')
+    hp = get_default_hp(task='1pa',platform='server')
     hp['agenttype'] = 'a2c'
-    hp['btstp'] = 1
+    hp['btstp'] = 9
     hp['savefig'] = True
     hp['savegenvar'] = False
 

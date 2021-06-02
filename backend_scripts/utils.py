@@ -56,7 +56,7 @@ def plot_dgr(dgr,scl, pltidx, patype):
     else:
         chnc = 100/6
     plt.axhline(y=chnc, color='r', linestyle='--')
-    plt.title('Time Spent at Correct Location (%)')
+    plt.title('Visit Ratio (%)')
     tv,pv = ttest_1samp(dgr, chnc, axis=0)
     for i,p in enumerate(ax.patches):
         if pv[i] < 0.001:
@@ -99,6 +99,7 @@ def get_default_hp(task, platform='laptop'):
         'task': task,
         'tstep': 100,  # ms
         'time': 3600,  # seconds
+        'probetime': 60,
         'render': False,
         'epochs': epochs,
         'trsess': trsess,

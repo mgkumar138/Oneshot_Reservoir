@@ -54,12 +54,13 @@ def npapa_script(hp):
         plt.title('Memory')
         plt.colorbar()
 
+    if allw:
         plt.subplot(235)
-        plt.imshow(allw[-1][0][:,0].reshape(7,7),aspect='auto')
+        plt.imshow(allw[1][:,0].reshape(7,7),aspect='auto')
         plt.title('X')
         plt.colorbar()
         plt.subplot(236)
-        plt.imshow(allw[-1][0][:,1].reshape(7,7),aspect='auto')
+        plt.imshow(allw[1][:,1].reshape(7,7),aspect='auto')
         plt.title('Y')
         plt.colorbar()
 
@@ -139,7 +140,7 @@ def res_12pa_expt(hp,b):
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
 
-    return dgr, pi, mvpath, _, [trw, npa1w]
+    return dgr, pi, mvpath, _, [trw[-1], npa1w[-1]]
 
 
 def run_res_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None, nocue=None, noreward=None):
@@ -396,7 +397,7 @@ def sym_12pa_expt(hp,b):
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
 
-    return dgr, pi, mvpath, [memt, mem1], [trw, npa1w]
+    return dgr, pi, mvpath, [memt, mem1], [trw[0], npa1w[0]]
 
 
 def run_sym_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None, nocue=None, noreward=None):
@@ -1058,7 +1059,8 @@ def singlepa_script(hp):
     plt.ylabel('Latency (s)')
     totlat *=hp['tstep']/1000
     plt.title('Latency per learning trial, change target every {} trials'.format(trsess))
-    plt.errorbar(x=np.arange(epochs*trsess),y=np.mean(totlat,axis=0).reshape(-1),yerr=np.std(totlat,axis=0).reshape(-1)/btstp, marker='*')
+    plt.errorbar(x=np.arange(epochs*trsess),y=np.mean(totlat,axis=0).reshape(-1),
+                 yerr=np.std(totlat,axis=0).reshape(-1)/btstp, marker='*', color='k')
 
     plt.subplot(242)
     plt.title('Visit Ratio per Epoch')

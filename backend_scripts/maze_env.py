@@ -4,27 +4,27 @@ import matplotlib.pyplot as plt
 class Maze:
     def __init__(self, hp):
 
-        ''' Define Env Parameters '''
+        ''' learn Tse et al., 2007 OPA and NPA tasks '''
         self.hp=hp
-        self.tstep = hp['tstep']
+        self.tstep = hp['tstep'] # simulation time step
         self.maxstep = hp['time']*(1000 // self.tstep) # max training time
-        self.normax = 60 * (1000 // self.tstep)  # Non-rewarded probe test max time 60s
-        self.au = 1.6
-        self.rrad = 0.03
-        self.testrad = 0.03
-        self.stay = False
-        self.rendercall = hp['render']
-        self.bounpen = 0.01
+        self.normax = hp['probetime'] * (1000 // self.tstep)  # Non-rewarded probe trial max time 60s
+        self.au = 1.6  # maze size
+        self.rrad = 0.03  # reward location radius
+        self.testrad = 0.03  # test location radius
+        self.stay = False  # when agent reaches reward location, agent position is fixed
+        self.rendercall = hp['render']  # plot realtime movement of agent
+        self.bounpen = 0.01  # bounce back from boundary
         self.punish = 0  # no punishment
-        self.Rval = hp['Rval']
-        self.dtxy = np.zeros(2)
+        self.Rval = hp['Rval']  # reward value when agent reaches reward location
+        self.dtxy = np.zeros(2)  # true self-motion
 
         ''' Define Reward location '''
-        ncues = hp['cuesize']
+        ncues = hp['cuesize']  # size of cue vector
         sclf = hp['cuescl']  # gain for cue
-        self.smell = np.eye(ncues) * sclf
+        self.smell = np.eye(ncues) * sclf  # sensory cue to be passed to agent
         self.cue_size = self.smell.shape[1]
-        self.holoc = np.zeros([49,2])
+        self.holoc = np.zeros([49,2])  # number of reward locations in maze
 
         ''' create dig sites '''
         holes = np.linspace((-self.au / 2) + 0.2, (self.au / 2) - 0.2, 7)  # each reward location is 20 cm apart
@@ -41,6 +41,7 @@ class Maze:
             self.ax.axis([-self.au/2,self.au/2,-self.au/2,self.au/2])
 
     def make(self, mtype='train', nocue=None, noreward=None):
+        # make maze environment with reward locations and respective sensory cues
         self.mtype = mtype
         if mtype =='train' or mtype == 'opa':
             self.rlocs = np.array([self.holoc[8],self.holoc[13], self.holoc[18], self.holoc[30], self.holoc[35],self.holoc[40]])
@@ -76,19 +77,19 @@ class Maze:
             self.ridx = np.random.choice(6, 6, replace=False)
             self.sessr = 0
         self.idx = self.ridx[trial%6]
-        self.rloc = self.rlocs[self.idx]
-        self.cue = self.cues[self.idx]
+        self.rloc = self.rlocs[self.idx]  # reward location at current trial
+        self.cue = self.cues[self.idx]  # cue at current trial
         self.cueidx = np.argmax(self.cue)+1
-        self.x, self.startpos = randpos(self.au)
+        self.x, self.startpos = randpos(self.au)  # random start position
         self.reward = 0
         self.done = False
         self.i = 0
         self.stay = False
-        self.tracks = []
-        self.tracks.append(self.x) # include start location
+        self.tracks = []  # track trajectory
+        self.tracks.append(self.x)  # include start location
         self.t = trial
-        self.cordig = 0
-        self.totdig = 0
+        self.cordig = 0  # visit correct location
+        self.totdig = 0  # visit a reward location
         self.dgr = 0
         if trial in self.noct: self.cue = np.zeros_like(self.cue)
         self.runR = run_Rstep(self.hp)
@@ -144,9 +145,9 @@ class Maze:
             if self.i == self.normax:
                 self.done=True
         else:
-
+            # training trial
             if np.linalg.norm(self.rloc - xt1, 2) < self.rrad and self.stay is False:
-                # if reach reward, r=1 at first instance
+                # if reach reward, start reward disbursement
                 cue = self.cue
                 R = self.Rval
                 self.stay = True
@@ -174,6 +175,7 @@ class Maze:
 
 
 def randpos(au):
+    # to randomly chose a start position
     stpos = (au/2)*np.concatenate([np.eye(2),-1*np.eye(2)],axis=0)
     idx = np.random.choice(4,1, replace=True) # east, north, west, south
     randst = stpos[idx]
@@ -182,6 +184,7 @@ def randpos(au):
 
 class run_Rstep():
     def __init__(self,hp):
+        '''continuous reward function'''
         self.rat = 0
         self.rbt = 0
         self.rt = 0
@@ -190,7 +193,7 @@ class run_Rstep():
         self.tstep = hp['tstep']
         self.Rval = hp['Rval']
         self.totR = 0
-        self.fullR = (1 - 1e-4) * self.Rval/self.tstep
+        self.fullR = (1 - 1e-4) * self.Rval/self.tstep # Stop trial after 99.99% of reward disbursed
         self.count = False
 
     def convR(self,rat, rbt):
@@ -215,12 +218,12 @@ class run_Rstep():
 
 class Navex:
     def __init__(self,hp):
-        ''' Learning 16/6 PAs per run '''
+        ''' Learning single displaced locations '''
         self.hp = hp
         self.workmem = hp['workmem']
         self.tstep = hp['tstep']
         self.maxstep = hp['time']*(1000 // self.tstep) # Train max time, 1hr
-        self.normax = 60 * (1000 // self.tstep)  # Non-rewarded probe test max time 60s
+        self.normax = hp['probetime']  * (1000 // self.tstep)  # Non-rewarded probe test max time 60s
         self.au = 1.6
         self.rrad = 0.03
         self.bounpen = 0.01
@@ -264,7 +267,6 @@ class Navex:
         self.rlocs = []
         for r in range(mtype):
             self.rlocs.append(self.holoc[rlocsidx])
-            #self.rlocs.append(self.holoc[24])
         self.rlocs = np.array(self.rlocs)
         self.cues = np.tile(self.smell[0],(len(self.smell),1))  # np.zeros_like(self.smell)
         self.loci += 1
@@ -387,11 +389,11 @@ class Navex:
 class MultiplePA_Maze:
     def __init__(self, hp):
 
-        ''' Define Env Parameters '''
+        ''' Learn 12 NPAs after learn 6 PAs from Tse et al. (2007) '''
         self.hp=hp
         self.tstep = hp['tstep']
         self.maxstep = hp['time']*(1000 // self.tstep) # max training time
-        self.normax = 60 * (1000 // self.tstep)  # Non-rewarded probe test max time 60s
+        self.normax = hp['probetime']  * (1000 // self.tstep)  # Non-rewarded probe test max time 60s
         self.au = 1.6
         self.rrad = 0.03
         self.testrad = 0.03
@@ -410,9 +412,10 @@ class MultiplePA_Maze:
         self.holoc = np.zeros([49,2])
 
         self.loci = 0
-        self.opaloc = np.array([8, 13, 18, 30, 35, 40])
+        self.opaloc = np.array([8, 13, 18, 30, 35, 40])  # to exclude OPA locations from new NPA
         self.npaloc = np.arange(49)
         self.npaloc = np.array(list(set(self.npaloc)-set(self.opaloc)))
+        # choose 12 NPA locations randomly for every new agent instantiation
         self.npaloc = np.random.choice(self.npaloc, 36, replace=False)[:36].reshape(3,12)
 
         ''' create dig sites '''

@@ -5,86 +5,92 @@ import matplotlib.pyplot as plt
 
 class Res_MC_Agent:
     def __init__(self, hp, env):
-        ''' environment parameters '''
+        ''' Reservoir agent to learn self position and target location '''
         self.env = env
         self.tstep = hp['tstep']
 
         ''' agent parameters '''
-        self.lr = hp['lr']
-        self.mcbeta = hp['mcbeta']
-        self.omitg = hp['omitg']
-        self.alpha = hp['tstep']/hp['tau']
+        self.lr = hp['lr']  # reservoir learning rate
+        self.mcbeta = hp['mcbeta']  # motor controller beta
+        self.omitg = hp['omitg']  # threshold to omit goal coordinate
+        self.alpha = hp['tstep']/hp['tau']  # alpha value
 
-        self.xylr = hp['xylr']
-        self.stochlearn = hp['stochlearn']
-        self.npc = hp['npc']
-        self.nact = hp['nact']
+        self.xylr = hp['xylr']  # self position coordiante learning rate
+        self.stochlearn = hp['stochlearn']  # sparse learning algorithm
+        self.npc = hp['npc']  # number of place cells
+        self.nact = hp['nact']  # number of actor cells
 
-        self.xystate = tf.zeros([1, 2])
+        self.xystate = tf.zeros([1, 2])  # initialise self position states
         self.pcstate = tf.zeros([1, hp['npc'] * hp['npc']])
 
         ''' memory '''
-        self.resns = hp['resns']
-        self.nrnn = hp['nrnn']
-        self.phat = 0
-        self.gstate = tf.zeros([1,2])
-        self.mstate = tf.random.normal(shape=[1, hp['nrnn']], mean=0, stddev=np.sqrt(1 / self.alpha) * self.resns)
+        self.resns = hp['resns']  # noise in reservoir
+        self.nrnn = hp['nrnn'] # number of reservoir cells
+        self.phat = 0  # initialise performance metric
+        self.gstate = tf.zeros([1,2])  # initialise goal state
+        self.mstate = tf.random.normal(shape=[1, hp['nrnn']],
+                                       mean=0, stddev=np.sqrt(1 / self.alpha) * self.resns)  # initialie reservoir state
         self.pastpre = 0
-        self.verr = []
 
-        ''' Setup model: Place cell --> Action cells '''
-
+        ''' Setup model: Place cell, Reservoir, Action cell '''
         self.pc = place_cells(hp)
         self.model = Res_Model(hp)
         self.ac = action_cells(hp)
 
     def act(self, state, cue_r_fb, mstate):
-        cpc = tf.cast(self.pc.sense(state),dtype=tf.float32)
+        '''given state and cue, make action'''
+        cpc = tf.cast(self.pc.sense(state),dtype=tf.float32)  # convert 2D state into place cell activity
 
         state_cue_fb = tf.cast(tf.concat([cpc, cue_r_fb],axis=0)[None, :],dtype=tf.float32)  # combine all inputs
 
-        h, x, g, xy = self.model(state_cue_fb, mstate)
+        h, x, g, xy = self.model(state_cue_fb, mstate)  # goal and self position prediction by network model
         self.goal = g
 
-        ''' move to goal using motor controller: MC '''
+        # move to goal using motor controller if goal > threshold
         qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
 
         return state_cue_fb, cpc, qhat, xy, h, x, g
 
     def learn(self, s1, cue_r1_fb, R, xy, cpc,h,g, mstate, plasticity=True):
-        ''' Hebbian rule: lr * TD * eligibility trace '''
+        ''' Hebbian update rule '''
+        _, _, _, xy2, _, _, _ = self.act(s1, cue_r1_fb, mstate)  # estimate new position after making action
 
-        _, _, _, xy2, _, _, _ = self.act(s1, cue_r1_fb, mstate)
-
-        if plasticity:
+        if plasticity:  # switch off plasticity during probe
+            # low pass place cell filter
             self.pastpre = tf.cast((1-self.alpha) * self.pastpre + self.alpha * cpc,dtype=tf.float32)
-            tdxy = (-self.env.dtxy[None,:] + xy2-xy)
-            exy = tf.matmul(self.pastpre,tdxy,transpose_a=True)
-            dwxy = self.tstep * self.xylr * exy
-            self.model.layers[-1].set_weights([self.model.layers[-1].get_weights()[0] + dwxy])
+            tdxy = (-self.env.dtxy[None,:] + xy2-xy)  # TD error for self position
+            exy = tf.matmul(self.pastpre,tdxy,transpose_a=True)  # compute trace
+            dwxy = self.tstep * self.xylr * exy  # learning rate * trace
+            self.model.layers[-1].set_weights([self.model.layers[-1].get_weights()[0] + dwxy]) # update weight
 
-            if R > 0:
+            if R > 0: # to increase computational speed, perform trace computation only when reward is positive
                 if self.stochlearn:
+                    ''' 4 factor exploratory hebbian rule '''
+                    # add noise to goal
                     gns = g + tf.cast(tf.random.normal(mean=0, stddev=np.sqrt(1 / self.alpha) * 0.25, shape=g.shape), dtype=tf.float32)
+                    self.gstate = (1 - self.alpha) * self.gstate + self.alpha * gns  # los pass filtered place cell
 
-                    P = -tf.reduce_sum((xy2 - gns) ** 2)
-                    self.phat = (1 - self.alpha) * self.phat + self.alpha * P
-                    if P > self.phat:
+                    P = -tf.reduce_sum((xy2 - gns) ** 2) # compute performance metric
+                    self.phat = (1 - self.alpha) * self.phat + self.alpha * P  # low pass filtered performance
+
+                    if P > self.phat:  # modulatory factor
                         M = 1
                     else:
                         M = 0
-                    self.gstate = (1 - self.alpha) * self.gstate + self.alpha * gns
-                    eg = tf.matmul(h, (gns - self.gstate), transpose_a=True)
-                    dwg = self.lr * eg * M
-                    self.model.layers[-2].set_weights([self.model.layers[-2].get_weights()[0] + dwg])
+
+                    eg = tf.matmul(h, (gns - self.gstate), transpose_a=True) # trace pre x (post - lowpass)
+                    dwg = self.lr * eg * M * (R !=0)  # trace * modulatory * reward presence
+                    self.model.layers[-2].set_weights([self.model.layers[-2].get_weights()[0] + dwg])  # update weights
                 else:
-                    eg = tf.matmul(h, (xy2 - g), transpose_a=True)
-                    dwg = self.tstep * self.lr * eg * R
+                    ''' perceptron rule '''
+                    eg = tf.matmul(h, (xy2 - g), transpose_a=True)  # trace: pre * (target - goal prediction)
+                    dwg = self.tstep * self.lr * eg * R  # trace * reward
                     self.model.layers[-2].set_weights([self.model.layers[-2].get_weights()[0] + dwg])
 
         return xy2
 
     def agent_reset(self):
+        ''' reset agent states every new trial '''
         self.phat = 0
         self.pastpre = 0
         self.gstate = tf.zeros([1,2])
@@ -95,6 +101,7 @@ class Res_MC_Agent:
 
 class Res_Model(tf.keras.Model):
     def __init__(self, hp):
+        ''' reservoir & goal + self position cordinate prediction '''
         super(Res_Model, self).__init__()
         rnncell = RNN_Cell(hp=hp, ninput=67)
         self.res = tf.keras.layers.RNN(rnncell,return_state=True, return_sequences=False, time_major=False,
@@ -107,32 +114,32 @@ class Res_Model(tf.keras.Model):
                                             use_bias=False, kernel_initializer='zeros', name='currpos')
 
     def call(self, inputs, states):
-        pc = inputs[:,:49]
+        pc = inputs[:,:49]  # get place cell activity from input
         h, x = self.res(inputs[None,:], initial_state=states)
-        g = self.goal(h)
-        xy = self.xy(pc)
+        g = self.goal(h)  # goal estimate
+        xy = self.xy(pc)  # pass place cell activity to self position network
         return h, x, g, xy
 
 class RNN_Cell(tf.keras.layers.Layer):
     def __init__(self, hp, ninput):
-        self.units = hp['nrnn']
-        self.state_size = hp['nrnn']
+        ''' reservoir definition '''
         super(RNN_Cell, self).__init__()
 
-        self.nrnn = hp['nrnn']
-        self.ralpha = hp['tstep'] / hp['tau']
-        self.recns = np.sqrt(1 / self.ralpha) * hp['resns']
-        self.resact = choose_activation(hp['ract'], hp)
-        self.resrecact = choose_activation(hp['recact'], hp)
-        self.cp = hp['cp']
-        self.recwinscl = hp['recwinscl']
+        self.state_size = hp['nrnn']
+        self.nrnn = hp['nrnn']  # number of units
+        self.ralpha = hp['tstep'] / hp['tau']  # time constant
+        self.recns = np.sqrt(1 / self.ralpha) * hp['resns']  # white noise
+        self.resact = choose_activation(hp['ract'], hp)  # reservoir activation function
+        self.resrecact = choose_activation(hp['recact'], hp)  # recurrent activation function
+        self.cp = hp['cp']  # connection probability
+        self.recwinscl = hp['recwinscl']  # input weight scale
 
-        ''' win weight init'''
+        ''' input weight'''
         winconn = np.random.uniform(-self.recwinscl, self.recwinscl, (ninput, self.nrnn))  # uniform dist [-1,1]
         winprob = np.random.choice([0, 1], (ninput, self.nrnn), p=[1 - self.cp[0], self.cp[0]])
-        self.w_in = np.multiply(winconn, winprob)
+        self.w_in = np.multiply(winconn, winprob) # cater to different input connection probabilities
 
-        ''' wrec weight init '''
+        ''' recurrent weight '''
         connex = np.random.normal(0, np.sqrt(1 / (self.cp[1] * self.nrnn)), size=(self.nrnn, self.nrnn))
         prob = np.random.choice([0, 1], (self.nrnn, self.nrnn), p=[1 - self.cp[1], self.cp[1]])
         w_rec = hp['chaos'] * np.multiply(connex, prob)  # initialise random network with connection probability
@@ -150,23 +157,23 @@ class RNN_Cell(tf.keras.layers.Layer):
         self.built = True
 
     def call(self, inputs, states):
-        I = tf.matmul(inputs, self.win)
-        rjt = tf.matmul(self.resrecact(states[0]), self.wrec)
-        sigmat = tf.random.normal(shape=(1, self.nrnn), mean=0, stddev=self.recns)
+        I = tf.matmul(inputs, self.win)  # get input current
+        rjt = tf.matmul(self.resrecact(states[0]), self.wrec)  # get past recurrent activity
+        sigmat = tf.random.normal(shape=(1, self.nrnn), mean=0, stddev=self.recns)  # white noise
 
-        xit = (1 - self.ralpha) * states[0] + self.ralpha * (I + rjt + sigmat)
-        rit = self.resact(xit)
+        xit = (1 - self.ralpha) * states[0] + self.ralpha * (I + rjt + sigmat)  # new membrane potential
+        rit = self.resact(xit)  # reservoir activity
         return rit, xit
 
-def motor_controller(goal, xy, ac, q=0, beta=4, omitg=0.025):
-    if tf.norm(goal[0], ord=2) > omitg:
-        dircomp = tf.cast(goal - xy, dtype=tf.float32)
-        qk = tf.matmul(dircomp, ac.aj)
-        sattw = tf.nn.softmax(beta * qk)
+def motor_controller(goal, xy, ac, beta=4, omitg=0.025):
+    ''' motor controller to decide direction to move with current position and goal location '''
+    if tf.norm(goal[0], ord=2) > omitg:  # omit goal if goal is less than threshold
+        dircomp = tf.cast(goal - xy, dtype=tf.float32)  # vector subtraction
+        qk = tf.matmul(dircomp, ac.aj)  # choose action closest to direction to move
+        qhat = tf.nn.softmax(beta * qk)  # scale action with beta and get probability of action
     else:
-        sattw = tf.zeros([1,ac.nact])
-    qns = sattw + q
-    return qns
+        qhat = tf.zeros([1,ac.nact])  # if goal below threshold, no action selected by motor controller
+    return qhat
 
 
 class place_cells():
@@ -205,44 +212,41 @@ class place_cells():
 
 class action_cells():
     def __init__(self, hp):
-        self.nact = hp['nact']
-        self.alat = hp['alat']
+        self.nact = hp['nact']  # number of action units
+        self.alat = hp['alat']  # to use lateral connectivity
         self.tstep = hp['tstep']
-        self.astep = hp['maxspeed'] * self.tstep
+        self.astep = hp['maxspeed'] * self.tstep  # maxstep size a0
         thetaj = (2 * np.pi * np.arange(1, self.nact + 1)) / self.nact
         self.aj = tf.cast(self.astep * np.array([np.sin(thetaj), np.cos(thetaj)]), dtype=tf.float32)
-        self.qalpha = self.tstep / hp['tau']
+        self.qalpha = self.tstep / hp['tau']  # actor time constant
         self.qstate = tf.zeros((1, self.nact))  # initialise actor units to 0
-        self.ns = np.sqrt(1 / self.qalpha) * hp['actns']
+        self.ns = np.sqrt(1 / self.qalpha) * hp['actns']  # white noise for exploration
 
         wminus = hp['actorw-']  # -1
         wplus = hp['actorw+']  # 1
         psi = hp['actorpsi']  # 20
-        thetaj = (2 * np.pi * np.arange(1, self.nact + 1)) / self.nact
         thetadiff = np.tile(thetaj[None, :], (self.nact, 1)) - np.tile(thetaj[:, None], (1, self.nact))
         f = np.exp(psi * np.cos(thetadiff))
         f = f - f * np.eye(self.nact)
         norm = np.sum(f, axis=0)[0]
-        self.wlat = tf.cast((wminus/self.nact) + wplus * f / norm,dtype=tf.float32)
-        self.actact = choose_activation(hp['actact'],hp)
+        self.wlat = tf.cast((wminus/self.nact) + wplus * f / norm,dtype=tf.float32)  # lateral connectivity matrix
+        self.actact = choose_activation(hp['actact'],hp)  # actor activation function
 
     def reset(self):
         self.qstate = tf.zeros((1, self.nact)) # reset actor units to 0
 
     def move(self, q):
-        Y = q + tf.random.normal(mean=0, stddev=self.ns, shape=(1, self.nact), dtype=tf.float32)
+        Y = q + tf.random.normal(mean=0, stddev=self.ns, shape=(1, self.nact), dtype=tf.float32)  # add white noise
         if self.alat:
-            Y += tf.matmul(self.actact(self.qstate),self.wlat)
-        self.qstate = (1 - self.qalpha) * self.qstate + self.qalpha * Y
-        rho = self.actact(self.qstate)
-        at = tf.matmul(self.aj, rho, transpose_b=True).numpy()[:, 0]/self.nact
-
-        # movedist = np.linalg.norm(at,2)*1000/self.tstep  # m/s
-        # self.maxactor.append(movedist)
+            Y += tf.matmul(self.actact(self.qstate),self.wlat) # use lateral connectivity
+        self.qstate = (1 - self.qalpha) * self.qstate + self.qalpha * Y  # new membrane potential
+        rho = self.actact(self.qstate)  # new actor activity
+        at = tf.matmul(self.aj, rho, transpose_b=True).numpy()[:, 0]/self.nact  # choose direction of movement
         return at, rho
 
 
 def choose_activation(actname,hp=None):
+    ''' range of activation functions to use'''
     if actname == 'sigm':
         act = tf.sigmoid
     elif actname == 'tanh':
@@ -278,16 +282,12 @@ class BackpropAgent:
         self.lr = hp['lr']
         self.npc = hp['npc']
         self.nact = hp['nact']
-        self.rstate = tf.zeros([1,hp['nhid']])
         self.action = np.zeros(2)
-        self.actalpha = hp['actalpha']
+        self.actalpha = hp['actalpha']   # smooth action taken
         self.alpha = hp['tstep']/hp['tau']
 
         ''' critic parameters '''
         self.ncri = hp['ncri']
-        self.vstate = tf.zeros([1, self.ncri])
-        self.eulerm = hp['eulerm']
-        self.maxcritic = 0
         self.loss = 0
 
         ''' Setup model: Place cell --> Action cells '''
@@ -303,29 +303,25 @@ class BackpropAgent:
         s = self.pc.sense(state)  # convert coordinate info to place cell activity
         state_cue_fb = np.concatenate([s, cue_r_fb])  # combine all inputs
 
-        if self.env.done:
-            # silence all inputs after trial ends
-            state_cue_fb = np.zeros_like(state_cue_fb)
-
         ''' Predict next action '''
-        r, q, c = self.model(tf.cast(state_cue_fb[None, :], dtype=tf.float32))
+        r, q, c = self.model(tf.cast(state_cue_fb[None, :], dtype=tf.float32))  # model prediction
 
         # stochastic discrete action selection
         action_prob_dist = tf.nn.softmax(q)
-        actsel = np.random.choice(range(self.nact), p=action_prob_dist.numpy()[0])
-        actdir = self.ac.aj[:,actsel]/self.tstep # constant speed 0.03
-        self.action = (1-self.actalpha)*self.action + self.actalpha*actdir.numpy()
+        actsel = np.random.choice(range(self.nact), p=action_prob_dist.numpy()[0])  # choose 1 action based on probability
+        actdir = self.ac.aj[:,actsel]/self.tstep  # select 1 out of 40 possible direction of movement
+        self.action = (1-self.actalpha)*self.action + self.actalpha*actdir.numpy()  # smoothen action trajectory
 
         return state_cue_fb, r, q, c, actsel, self.action
 
     def replay(self):
-        discount_reward = self.discount_normalise_rewards(self.memory.rewards)
+        discount_reward = self.discount_normalise_rewards(self.memory.rewards)  # compute discounted rewards
 
         with tf.GradientTape() as tape:
             policy_loss, value_loss, total_loss = self.compute_loss(self.memory, discount_reward)
 
-        grads = tape.gradient(total_loss, self.model.trainable_weights)
-        self.opt.apply_gradients(zip(grads, self.model.trainable_weights))
+        grads = tape.gradient(total_loss, self.model.trainable_weights)  # compute gradients
+        self.opt.apply_gradients(zip(grads, self.model.trainable_weights))  # apply graidents with optimiser
         self.tderr = tf.reshape(total_loss, (1, 1))
 
         return policy_loss, value_loss, total_loss
@@ -334,7 +330,7 @@ class BackpropAgent:
         discounted_rewards = []
         cumulative = 0
         for reward in rewards[::-1]:
-            cumulative = reward + self.beg * cumulative
+            cumulative = reward + self.beg * cumulative  # discounted reward with gamma
             discounted_rewards.append(cumulative)
         discounted_rewards.reverse()
 
@@ -397,45 +393,42 @@ class Memory:
         self.states = []
         self.actions = []
         self.rewards = []
-        self.memstates = []
 
-    def store(self, state, action, reward, memorystate=None):
+    def store(self, state, action, reward):
         self.states.append(state)
         self.actions.append(action)
         self.rewards.append(reward)
-        self.memstates.append(memorystate)
 
     def clear(self):
         self.states = []
         self.actions = []
         self.rewards = []
-        self.memstates = []
 
 
 class Foster_MC_Agent:
     def __init__(self, hp, env):
-        ''' environment parameters '''
+        ''' Symbolic model equivalent to Foster et al. (2000) '''
         self.env = env
         self.tstep = hp['tstep']
 
         ''' agent parameters '''
-        self.mcbeta = hp['mcbeta']
-        self.omitg = hp['omitg']
+        self.mcbeta = hp['mcbeta']  # motor controller beta
+        self.omitg = hp['omitg']  # omit goal threshold
         self.alpha = hp['tstep']/hp['tau']
-        self.xylr = hp['xylr']
-        self.npc = hp['npc']
-        self.nact = hp['nact']
-        self.xystate = tf.zeros([1, 2])
+        self.xylr = hp['xylr']  # self position learning rate
+        self.npc = hp['npc']  # number of place cells
+        self.nact = hp['nact']  # number of action cells
+        self.xystate = tf.zeros([1, 2])  # initialise self position network
         self.pcstate = tf.zeros([1, hp['npc']* hp['npc']])
 
         ''' memory '''
-        self.memory = np.zeros([18,49+18+2])
+        self.memory = np.zeros([18,49+18+2])  # 2D episodic memory matrix to store place cell, cue, goal coordinate
         self.pastpre = 0
-        self.recallbeta = hp['recallbeta']
+        self.recallbeta = hp['recallbeta']  # recall beta
 
-        ''' Setup model: Place cell --> Action cells '''
+        ''' Setup model: Place cell, symbolic, Action cells '''
         self.pc = place_cells(hp)
-        self.model = Foster_Model(hp)
+        self.model = Foster_Model()
         self.ac = action_cells(hp)
 
     def act(self, state, cue_r_fb):
@@ -443,9 +436,9 @@ class Foster_MC_Agent:
 
         state_cue_fb = tf.cast(tf.concat([cpc, cue_r_fb],axis=0)[None, :],dtype=tf.float32)  # combine all inputs
 
-        xy = self.model(cpc[None, :])
+        xy = self.model(cpc[None, :])  # get self position estimate
 
-        self.goal = self.recall(cue_r_fb=state_cue_fb)
+        self.goal = self.recall(state_cue=state_cue_fb)
 
         ''' move to goal using motor controller: MC '''
         qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
@@ -453,6 +446,7 @@ class Foster_MC_Agent:
         return state_cue_fb, cpc, qhat, xy
 
     def store(self,xy, cue_r_fb,R, done, plastic):
+        ''' store current position as goal if reward is positive at cue indexed row '''
         if done and plastic:
             memidx = np.argmax(cue_r_fb)-49
             if R>0:
@@ -460,19 +454,20 @@ class Foster_MC_Agent:
             else:
                 self.memory[memidx] = 0
 
-    def recall(self,cue_r_fb):
-        # attention mechanism to query memory to retrieve goal coord
-        qk = tf.matmul(cue_r_fb, self.memory[:, :-2], transpose_b=True)
-        At = tf.nn.softmax(self.recallbeta * qk)
+    def recall(self,state_cue):
+        ''' attention mechanism to query memory to retrieve goal coord'''
+        qk = tf.matmul(state_cue, self.memory[:, :-2], transpose_b=True)  # use current position & cue to query memory
+        At = tf.nn.softmax(self.recallbeta * qk)  # attention weight
         gt = tf.matmul(At, self.memory[:, -2:])  # goalxy
         return tf.cast(gt,dtype=tf.float32)
 
     def learn(self, s1, cue_r1_fb, xy, cpc,plasticity=True):
         ''' Hebbian rule: lr * TD * eligibility trace '''
 
-        _, _, _, xy2 = self.act(s1, cue_r1_fb)
+        _, _, _, xy2 = self.act(s1, cue_r1_fb)  # get new curent position after taking action
 
         if plasticity:
+            ''' learn self position during training trials '''
             self.pastpre = tf.cast((1-self.alpha) * self.pastpre + self.alpha * cpc,dtype=tf.float32)
             tdxy = (-self.env.dtxy[None,:] + xy2-xy)
             exy = tf.matmul(self.pastpre,tdxy,transpose_a=True)
@@ -488,18 +483,13 @@ class Foster_MC_Agent:
 
 
 class Foster_Model(tf.keras.Model):
-    def __init__(self, hp):
+    def __init__(self):
         super(Foster_Model, self).__init__()
-        self.actor = tf.keras.layers.Dense(units=40, activation='linear',
-                                            use_bias=False, kernel_initializer='zeros', name='actor')
-        self.critic = tf.keras.layers.Dense(units=1, activation='linear',
-                                            use_bias=False, kernel_initializer='zeros', name='critic')
 
         self.xy = tf.keras.layers.Dense(units=2, activation='linear',
                                             use_bias=False, kernel_initializer='zeros', name='currpos')
 
     def call(self, inputs):
-        pc = inputs
-        xy = self.xy(pc)
+        xy = self.xy(inputs)
         return xy
 
