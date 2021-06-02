@@ -62,7 +62,7 @@ Training for each agent takes about 15 minutes for single reward task and 30 min
 Our agents achieve the following performance for single displaced location task :
 
 Latency reached by all agents:
-https://github.com/mgkumar138/Oneshot_Reservoir/blob/master/Fig/Paper_Fig/Latency_1pa.png 
+https://github.com/mgkumar138/Oneshot_Reservoir/blob/master/Fig/Paper_Fig/Latency_1pa.png?raw=true
 
 Time spent at each location during probe trial:
 ![Dgr_1pa](https://user-images.githubusercontent.com/35286288/120262683-bc1bfd80-c2cc-11eb-943d-3e4e4997b6f5.png)
