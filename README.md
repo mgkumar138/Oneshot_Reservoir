@@ -64,29 +64,29 @@ Our agents achieve the following performance for single displaced location task 
 
 Latency reached by all agents:
 
-![image](https://user-images.githubusercontent.com/35286288/120435916-df1fdd80-c3b0-11eb-8d89-aa4c65ef66df.png)
+![Latency_1pa](https://user-images.githubusercontent.com/35286288/120445898-a76a6300-c3bb-11eb-8dd8-50068163b657.png)
 
 Time spent at each location during probe trial:
 
-![Dgr_1pa](https://user-images.githubusercontent.com/35286288/120262683-bc1bfd80-c2cc-11eb-943d-3e4e4997b6f5.png)
+![Dgr_1pa](https://user-images.githubusercontent.com/35286288/120445926-ad604400-c3bb-11eb-9add-251cd5e2fbdb.png)
 
 
 Our agents achieve the following performance when learning multiple paired assocationn task :
 Latency reached by all agents:
 
-![Latency_6pa](https://user-images.githubusercontent.com/35286288/120262703-cb02b000-c2cc-11eb-8369-8bf375020f17.png)
+![Latency_6pa](https://user-images.githubusercontent.com/35286288/120445947-b224f800-c3bb-11eb-88a8-239e2e325099.png)
 
 Average visit ratio at during each probe session:
 
-![Dgr_train_6pa](https://user-images.githubusercontent.com/35286288/120262752-e4a3f780-c2cc-11eb-9275-50d246fcdcc8.png)
+![Dgr_train_6pa](https://user-images.githubusercontent.com/35286288/120445966-b94c0600-c3bb-11eb-9c6c-6a676cf70c4d.png)
 
 One shot learning results obtained for session 22 (OPA), 24 (2NPA), 26 (6NPA)
 
-![Dgr_eval_6pa](https://user-images.githubusercontent.com/35286288/120262911-3e0c2680-c2cd-11eb-931a-304c1567b800.png)
+![Dgr_eval_6pa](https://user-images.githubusercontent.com/35286288/120445974-bcdf8d00-c3bb-11eb-9159-abe9d18fc23d.png)
 
 One shot learning results for 12 random paired assocations with varying Reservoir size
 
-![PI_12pa_se](https://user-images.githubusercontent.com/35286288/120262953-511ef680-c2cd-11eb-8910-fd51bce9f6fa.png)
+![PI_12pa_se](https://user-images.githubusercontent.com/35286288/120446029-c79a2200-c3bb-11eb-8f2d-b782f1a727ce.png)
 
 ## Contributing
 Please cite the relevant work if the code is used for academic purposes.
