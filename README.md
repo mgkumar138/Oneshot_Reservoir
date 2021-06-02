@@ -63,23 +63,29 @@ Training for each agent takes about 15 minutes for single reward task and 30 min
 Our agents achieve the following performance for single displaced location task :
 
 Latency reached by all agents:
-https://github.com/mgkumar138/Oneshot_Reservoir/blob/master/Fig/Paper_Fig/Latency_1pa.png?raw=true
+
+![image](https://user-images.githubusercontent.com/35286288/120435916-df1fdd80-c3b0-11eb-8d89-aa4c65ef66df.png)
 
 Time spent at each location during probe trial:
+
 ![Dgr_1pa](https://user-images.githubusercontent.com/35286288/120262683-bc1bfd80-c2cc-11eb-943d-3e4e4997b6f5.png)
 
 
 Our agents achieve the following performance when learning multiple paired assocationn task :
 Latency reached by all agents:
+
 ![Latency_6pa](https://user-images.githubusercontent.com/35286288/120262703-cb02b000-c2cc-11eb-8369-8bf375020f17.png)
 
 Average visit ratio at during each probe session:
+
 ![Dgr_train_6pa](https://user-images.githubusercontent.com/35286288/120262752-e4a3f780-c2cc-11eb-9275-50d246fcdcc8.png)
 
 One shot learning results obtained for session 22 (OPA), 24 (2NPA), 26 (6NPA)
+
 ![Dgr_eval_6pa](https://user-images.githubusercontent.com/35286288/120262911-3e0c2680-c2cd-11eb-931a-304c1567b800.png)
 
 One shot learning results for 12 random paired assocations with varying Reservoir size
+
 ![PI_12pa_se](https://user-images.githubusercontent.com/35286288/120262953-511ef680-c2cd-11eb-8910-fd51bce9f6fa.png)
 
 ## Contributing
