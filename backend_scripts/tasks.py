@@ -48,21 +48,22 @@ def npapa_script(hp):
     plot_dgr(totdgr, scl, 231, 4)
     plot_dgr(totpi, scl, 232, 4)
 
-    if agentmemory:
-        plt.subplot(234)
-        plt.imshow(agentmemory[1],aspect='auto')
-        plt.title('Memory')
-        plt.colorbar()
+    if hp['agenttype'] != 'a2c':
+        if agentmemory:
+            plt.subplot(234)
+            plt.imshow(agentmemory[1],aspect='auto')
+            plt.title('Memory')
+            plt.colorbar()
 
-    if allw:
-        plt.subplot(235)
-        plt.imshow(allw[1][:,0].reshape(7,7),aspect='auto')
-        plt.title('X')
-        plt.colorbar()
-        plt.subplot(236)
-        plt.imshow(allw[1][:,1].reshape(7,7),aspect='auto')
-        plt.title('Y')
-        plt.colorbar()
+        if allw:
+            plt.subplot(235)
+            plt.imshow(allw[1][:,0].reshape(7,7),aspect='auto')
+            plt.title('X')
+            plt.colorbar()
+            plt.subplot(236)
+            plt.imshow(allw[1][:,1].reshape(7,7),aspect='auto')
+            plt.title('Y')
+            plt.colorbar()
 
     import matplotlib.cm as cm
     col = cm.rainbow(np.linspace(0, 1, 12))

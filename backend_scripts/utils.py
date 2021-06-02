@@ -98,8 +98,8 @@ def get_default_hp(task, platform='laptop'):
         'mazesize': 1.6,  # meters
         'task': task,
         'tstep': 100,  # ms
-        'time': 3600,  # seconds
-        'probetime': 60,
+        'time': 1,  # seconds
+        'probetime': 1,
         'render': False,
         'epochs': epochs,
         'trsess': trsess,

@@ -6,10 +6,10 @@ from backend_scripts.tasks import npapa_script
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='12pa',platform='server')
+    hp = get_default_hp(task='12pa',platform='laptop')
     hp['agenttype'] = 'a2c'
-    hp['btstp'] = 9
-    hp['savefig'] = True
+    hp['btstp'] = 1
+    hp['savefig'] = False
     hp['savevar'] = False
     hp['savegenvar'] = False
 
