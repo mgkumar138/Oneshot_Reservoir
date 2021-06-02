@@ -213,9 +213,9 @@ def run_control_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, usewei
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='12pa',platform='server')
+    hp = get_default_hp(task='12pa',platform='laptop')
     hp['agenttype'] = 'res'
-    hp['btstp'] = 30
+    hp['btstp'] = 1
     hp['savefig'] = True
     hp['savevar'] = False
     hp['savegenvar'] = False
