@@ -89,5 +89,4 @@ One shot learning results for 12 random paired assocations with varying Reservoi
 ![PI_12pa_se](https://user-images.githubusercontent.com/35286288/120262953-511ef680-c2cd-11eb-8910-fd51bce9f6fa.png)
 
 ## Contributing
-
->📋  Pick a licence and describe how to contribute to your code repository. 
+Please cite the relevant work if the code is used for academic purposes.
