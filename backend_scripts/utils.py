@@ -6,6 +6,7 @@ from scipy.stats import ttest_1samp
 import pickle
 import matplotlib
 import os
+import multiprocessing as mp
 
 
 def saveload(opt, name, variblelist):
@@ -96,66 +97,64 @@ def get_default_hp(task, platform='laptop'):
     hp = {
         # Environment parameters
         'mazesize': 1.6,  # meters
-        'task': task,
-        'tstep': 100,  # ms
-        'time': 3600,  # seconds
-        'probetime': 60,
-        'render': False,
-        'epochs': epochs,
-        'trsess': trsess,
-        'evsess': evsess,
-        'platform': platform,
-        'taua': 250,
-        'taub': 120,
-        'npa': 6,
-        'Rval': 4,
+        'task': task,  # type of task determiens number of training, evaluation sessions
+        'tstep': 100,  # ms each step taken is every 100 ms
+        'time': 3600,  # seconds total trial time
+        'probetime': 60,  # seconds total probe time
+        'render': False,  # dont plot real time movement
+        'epochs': epochs,  # only for single displaced location task
+        'trsess': trsess,  # number of training trials
+        'evsess': evsess,  # number of evaluation trials
+        'platform': platform,  # laptop, gpu or server with multiple processors
+        'taua': 250,  # reward decay time
+        'taub': 120,  # reward rise time
+        'Rval': 4,  # magnitude of reward disbursed
 
         # input parameters
-        'npc': 7,
-        'cuescl': 3,
-        'cuesize': 18,
-        'workmem': False,
+        'npc': 7,  # number of place cells across vertical and horizontal axes
+        'cuescl': 3,  # gain of cue
+        'cuesize': 18,  # size of cue
 
         # hidden parameters
-        'nhid': 8192,
-        'hidact': 'phia',
-        'sparsity': 3,
+        'nhid': 8192,  # number of hidden units for A2C
+        'hidact': 'phia',  # activation function for A2C hidden layer
+        'sparsity': 3,  # threshold for ReLU activation function
 
         # actor parameters:
-        'nact': 40,
-        'actact': 'relu',
-        'alat': True,
-        'actns': 0.25,
-        'maxspeed': 0.03,
-        'actorw-': -1,
-        'actorw+': 1,
-        'actorpsi': 20,
-        'tau': 150,
-        'ncri': 1,
+        'nact': 40,  # number of actor units
+        'actact': 'relu',  # activation of actor units
+        'alat': True,  # use lateral connectivity for ring attractor dynamics
+        'actns': 0.25,  # exploratory noise for actor
+        'maxspeed': 0.03,  # a0 scaling factor for veloctiy
+        'actorw-': -1,  # inhibitory scale for lateral connectivity
+        'actorw+': 1,  # excitatory scale for lateral connectivity
+        'actorpsi': 20,  # lateral connectivity spread
+        'tau': 150,  # membrane time constant for all cells
+        'ncri': 1,  # number of critic
 
         # reservoir parameters
-        'ract': 'tanh',
-        'recact': 'tanh',
-        'chaos': 1.5,
-        'cp': [1, 0.1],
-        'resns': 0.025,
-        'recwinscl': 1,
-        'nrnn': 1024,
+        'ract': 'tanh',  # reservoir activation function
+        'recact': 'tanh',  # reservoir recurrent activiation function
+        'chaos': 1.5,  # chaos gain lambda
+        'cp': [1, 0.1],  # connection probability - input to reservoir & within reservoir
+        'resns': 0.025,  # white noise in reservoir
+        'recwinscl': 1,  # reservoir input weight scale
+        'nrnn': 1024,  # number of rnn units
 
         # learning parameters
-        'taug': 10000,
+        'taug': 10000,  # reward discount factor gamme for A2C
         'eulerm': 1,  # euler approximation for TD error 1 - forward, 0 - backward
 
         # motor controller parameters
-        'omitg':0.025,
-        'mcbeta': 4,
-        'xylr': 0.00015,
-        'recallbeta': 1,
+        'omitg':0.025,  # threshold to omit L2(goal) to suppress motor controller
+        'mcbeta': 4,  # motor controller beta
+        'xylr': 0.00015,  # learning rate of self position coordinate network
+        'recallbeta': 1,  # recall beta within symbolic memory
 
         # others
-        'savevar': False,
-        'savefig': True,
-        'savegenvar': False,
+        'savevar': False,  # individual run variables
+        'savefig': True,  # save output figure
+        'savegenvar': False,  # save compiled variables latency, visit ratio
         'modeltype': None,
 
     }
@@ -166,7 +165,7 @@ def get_default_hp(task, platform='laptop'):
         hp['cpucount'] = 1
     elif hp['platform'] == 'server':
         matplotlib.use('Qt5Agg')
-        hp['cpucount'] = 3 #mp.cpu_count()
+        hp['cpucount'] = mp.cpu_count()
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
     elif hp['platform'] == 'gpu':
         #print(tf.config.list_physical_devices('GPU'))

@@ -18,7 +18,7 @@ if __name__ == '__main__':
     hp['stochlearn'] = True
     hp['lr'] = 0.0005  # 0.0005
     hp['nrnn'] = 1024
-    hp['taua'] = 2500
+    hp['taua'] = 2500 # increase reward duration
 
     hp['render'] = False  # visualise movement trial by trial
 
