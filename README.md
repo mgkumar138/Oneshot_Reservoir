@@ -41,6 +41,7 @@ To run the 4 types of agent(s) described in the paper in the multiple paired ass
 python [a2c_6pa/sym_mc_6pa/res_mc_6pa/sl_res_mc_6pa].py
 ```
 
+
 ## One-shot learning of 12 novel paired associates 
 To run the 4 types of agent(s) described in the paper in the 12NPA task, set working directory to ./other_pa and run this command:
 
@@ -49,7 +50,7 @@ python [a2c_12pa/sym_mc_12pa/res_mc_12pa/sl_res_mc_12pa].py
 ```
 
 Hyperparameters are set to obtain results in paper and can be tuned in the respective *.py scripts.
-```
+
 
 ## Training details
 
