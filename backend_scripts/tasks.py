@@ -89,7 +89,7 @@ def npapa_script(hp):
     print(exptname)
 
     if hp['savefig']:
-        plt.savefig('../Fig/fig_{}.png'.format(exptname))
+        plt.savefig('../Fig2/fig_{}.png'.format(exptname))
     if hp['savegenvar']:
         saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
                  [ totdgr, totpi])
@@ -555,7 +555,7 @@ def multiplepa_script(hp):
     plt.tight_layout()
 
     if hp['savefig']:
-        plt.savefig('../Fig/fig_{}.png'.format(exptname))
+        plt.savefig('../Fig2/fig_{}.png'.format(exptname))
     if hp['savegenvar']:
         saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
                  [totlat, totdgr, totpi])
@@ -1097,7 +1097,7 @@ def singlepa_script(hp):
     plt.show()
 
     if hp['savefig']:
-        plt.savefig('../Fig/fig_{}.png'.format(exptname))
+        plt.savefig('../Fig2/fig_{}.png'.format(exptname))
     if hp['savegenvar']:
         saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),   [totlat, totdgr, totpath])
 
