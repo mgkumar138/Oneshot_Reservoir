@@ -7,7 +7,7 @@ The main result of the paper is to demonstrate the one-shot learning of multiple
 4 agents were evaluated in both tasks and script begins with the following nomenclature:
 Advantage Actor Critic (A2C)                 - a2c*
 Symbolic agent                               - sym_mc*
-Reservoir agent trained by perceptron rule   - res*
+Reservoir agent trained by perceptron rule   - res_mc*
 Reservoir trained by sparse learning signal  - sl_res_mc*
 
 
@@ -29,7 +29,7 @@ pip install -r requirements.txt
 To run the 4 types of agent(s) described in the paper in the single displaced location task, set working directory to ./single_reward and run this command:
 
 ```train
-python [a2c_1pa/sym_mc_1pa/res_1pa_mc/sl_res_mc_1pa].py
+python [a2c_1pa/sym_mc_1pa/res_mc_1pa/sl_res_mc_1pa].py
 ```
 
 
@@ -38,14 +38,14 @@ python [a2c_1pa/sym_mc_1pa/res_1pa_mc/sl_res_mc_1pa].py
 To run the 4 types of agent(s) described in the paper in the multiple paired association task, set working directory to ./multiple_pa and run this command:
 
 ```train
-python [a2c_6pa/sym_mc_6pa/res_6pa_mc/sl_res_mc_6pa].py
+python [a2c_6pa/sym_mc_6pa/res_mc_6pa/sl_res_mc_6pa].py
 ```
 
 ## One-shot learning of 12 novel paired associates 
 To run the 4 types of agent(s) described in the paper in the 12NPA task, set working directory to ./other_pa and run this command:
 
 ```train
-python [a2c_12pa/sym_mc_12npa/res_nmc_12pa_mc/sl_res_nmc_12pa].py
+python [a2c_12pa/sym_mc_12pa/res_mc_12pa/sl_res_mc_12pa].py
 ```
 
 Hyperparameters are set to obtain results in paper and can be tuned in the respective *.py scripts.
@@ -62,7 +62,7 @@ Training for each agent takes about 15 minutes for single reward task and 30 min
 Our agents achieve the following performance for single displaced location task :
 
 Latency reached by all agents:
-![Latency_1pa](https://user-images.githubusercontent.com/35286288/120262629-9c84d500-c2cc-11eb-9bdf-0823201c7160.png)
+https://github.com/mgkumar138/Oneshot_Reservoir/blob/master/Fig/Paper_Fig/Latency_1pa.png 
 
 Time spent at each location during probe trial:
 ![Dgr_1pa](https://user-images.githubusercontent.com/35286288/120262683-bc1bfd80-c2cc-11eb-943d-3e4e4997b6f5.png)
