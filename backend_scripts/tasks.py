@@ -49,23 +49,23 @@ def npapa_script(hp):
     plot_dgr(totpi, scl, 232, 4)
 
     if agentmemory:
-        plt.subplot(233)
+        plt.subplot(234)
         plt.imshow(agentmemory[1],aspect='auto')
         plt.title('Memory')
         plt.colorbar()
 
-        plt.subplot(234)
+        plt.subplot(235)
         plt.imshow(allw[-1][0][:,0].reshape(7,7),aspect='auto')
         plt.title('X')
         plt.colorbar()
-        plt.subplot(235)
+        plt.subplot(236)
         plt.imshow(allw[-1][0][:,1].reshape(7,7),aspect='auto')
         plt.title('Y')
         plt.colorbar()
 
     import matplotlib.cm as cm
     col = cm.rainbow(np.linspace(0, 1, 12))
-    plt.subplot(2, 3, 6)
+    plt.subplot(2, 3, 3)
     k = mvpath
     for pt in range(12):
         plt.plot(np.array(k[pt])[:-1, 0], np.array(k[pt])[:-1, 1], color=col[pt], alpha=0.5, linewidth=1, zorder=1)
@@ -149,9 +149,6 @@ def run_res_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None
         mvpath = None
     dgr = []
     env.make(mtype=mtype, nocue=nocue, noreward=noreward)
-
-    # if mtype=='nm':
-    #     agent.pc.flip_pcs()
 
     if useweight:
         agent.model.set_weights(useweight)
@@ -410,8 +407,6 @@ def run_sym_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None
     dgr = []
     env.make(mtype=mtype, nocue=nocue, noreward=noreward)
 
-    # if mtype=='nm':
-    #     agent.pc.flip_pcs()
     if useweight:
         agent.model.set_weights(useweight)
         agent.memory = np.zeros_like(agent.memory)
@@ -538,10 +533,11 @@ def multiplepa_script(hp):
     env = Maze(hp)
 
     col = ['b', 'g', 'r', 'y', 'm', 'k']
-    for i,m in enumerate(['train','train','train','opa', 'npa', 'nm']):
+    mlegend = ['PS1','PS2','PS3','OPA','2NPA','6NPA']
+    for i,m in enumerate(['train','train','train','opa', '2npa', '6npa']):
 
         plt.subplot(3, 3, i+4)
-        plt.title('{}'.format(m))
+        plt.title(mlegend[i])
         env.make(m)
         k = mvpath[i]
         for pt in range(len(mvpath[2])):
@@ -601,8 +597,8 @@ def res_multiplepa_expt(hp,b):
 
     # Start Evaluation
     lat[trsess:trsess + evsess], mvpath[3], opaw, dgr[3], pi[3] = run_res_multiple_expt(b,'opa', env, hp,agent, alldyn, evsess, trw, noreward=[nonrp[0]])
-    lat[trsess + evsess:trsess + evsess * 2], mvpath[4],  npaw, dgr[4], pi[4] = run_res_multiple_expt(b,'npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
-    lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_res_multiple_expt(b, 'nm', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
+    lat[trsess + evsess:trsess + evsess * 2], mvpath[4],  npaw, dgr[4], pi[4] = run_res_multiple_expt(b,'2npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
+    lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_res_multiple_expt(b, '6npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
 
     if hp['savevar']:
         saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
@@ -621,9 +617,6 @@ def run_res_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=
         mvpath = np.zeros((6,env.normax,2))
     dgr = []
     env.make(mtype=mtype, nocue=nocue, noreward=noreward)
-
-    # if mtype=='nm':
-    #     agent.pc.flip_pcs()
 
     if useweight:
         agent.model.set_weights(useweight)
@@ -689,7 +682,7 @@ def run_res_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=
             else:
                 mvpath[env.idx] = env.tracks[:env.normax]
 
-            if mtype == 'npa':
+            if mtype == '2npa':
                 if (find_cue(env.cue) == np.array([7, 8])).any():
                     dgr.append(env.dgr)
             else:
@@ -767,8 +760,8 @@ def a2c_multiplepa_expt(hp,b):
 
     # Start Evaluation
     lat[trsess:trsess + evsess], mvpath[3], opaw, dgr[3], pi[3] = run_a2c_multiplepa_expt(b,'opa', env, hp,agent, alldyn, evsess, trw, noreward=[nonrp[0]])
-    lat[trsess + evsess:trsess + evsess * 2], mvpath[4],  npaw, dgr[4], pi[4] = run_a2c_multiplepa_expt(b,'npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
-    lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_a2c_multiplepa_expt(b, 'nm', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
+    lat[trsess + evsess:trsess + evsess * 2], mvpath[4],  npaw, dgr[4], pi[4] = run_a2c_multiplepa_expt(b,'2npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
+    lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_a2c_multiplepa_expt(b, '6npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
 
     if hp['savevar']:
         saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
@@ -832,7 +825,7 @@ def run_a2c_multiplepa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweigh
             else:
                 mvpath[env.idx] = env.tracks[:env.normax]
 
-            if mtype == 'npa':
+            if mtype == '2npa':
                 if (find_cue(env.cue) == np.array([7, 8])).any():
                     dgr.append(env.dgr)
             else:
@@ -910,8 +903,8 @@ def sym_multiplepa_expt(hp,b):
 
     # Start Evaluation
     lat[trsess:trsess + evsess], mvpath[3], opaw, dgr[3], pi[3] = run_sym_multiple_expt(b,'opa', env, hp,agent, alldyn, evsess, trw, noreward=[nonrp[0]])
-    lat[trsess + evsess:trsess + evsess * 2], mvpath[4],  npaw, dgr[4], pi[4] = run_sym_multiple_expt(b,'npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
-    lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_sym_multiple_expt(b, 'nm', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
+    lat[trsess + evsess:trsess + evsess * 2], mvpath[4],  npaw, dgr[4], pi[4] = run_sym_multiple_expt(b,'2npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
+    lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_sym_multiple_expt(b, '6npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
 
     # Summarise weight change of layers
     if hp['savevar']:
@@ -931,9 +924,6 @@ def run_sym_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=
         mvpath = np.zeros((6,env.normax,2))
     dgr = []
     env.make(mtype=mtype, nocue=nocue, noreward=noreward)
-
-    # if mtype=='nm':
-    #     agent.pc.flip_pcs()
 
     if useweight:
         agent.model.set_weights(useweight)
@@ -990,7 +980,7 @@ def run_sym_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=
             else:
                 mvpath[env.idx] = env.tracks[:env.normax]
 
-            if mtype == 'npa':
+            if mtype == '2npa':
                 if (find_cue(env.cue) == np.array([7, 8])).any():
                     dgr.append(env.dgr)
             else:
@@ -1062,16 +1052,13 @@ def singlepa_script(hp):
         totlat[b], totdgr[b], totpath[b], mdlw = x[b]
 
     totlat[totlat == 0] = np.nan
-    plt.figure(figsize=(15, 8))
+    plt.figure(figsize=(15, 6))
     plt.gcf().text(0.01, 0.01, exptname, fontsize=12)
     plt.subplot(241)
     plt.ylabel('Latency (s)')
     totlat *=hp['tstep']/1000
     plt.title('Latency per learning trial, change target every {} trials'.format(trsess))
-    plt.errorbar(x=np.arange(epochs*trsess),y=np.mean(totlat,axis=0).reshape(-1),yerr=np.std(totlat,axis=0).reshape(-1)/btstp)
-    plt.scatter(np.arange(epochs * trsess), np.mean(totlat,axis=0).reshape(-1),marker='*',color='k')
-    for i in range(epochs):
-        plt.axvline(i*trsess,color='r')
+    plt.errorbar(x=np.arange(epochs*trsess),y=np.mean(totlat,axis=0).reshape(-1),yerr=np.std(totlat,axis=0).reshape(-1)/btstp, marker='*')
 
     plt.subplot(242)
     plt.title('Visit Ratio per Epoch')
@@ -1083,13 +1070,13 @@ def singlepa_script(hp):
     if hp['agenttype'] != 'a2c':
         plt.subplot(243)
         plt.title('X')
-        plt.imshow(mdlw[:49, 0].reshape(7, 7))
-        plt.colorbar()
+        im = plt.imshow(mdlw[:49, 0].reshape(7, 7))
+        plt.colorbar(im,fraction=0.046, pad=0.04)
 
         plt.subplot(244)
         plt.title('Y')
-        plt.imshow(mdlw[:49, 1].reshape(7, 7))
-        plt.colorbar()
+        im = plt.imshow(mdlw[:49, 1].reshape(7, 7))
+        plt.colorbar(im,fraction=0.046, pad=0.04)
 
     mvpath = totpath[0]
     midx = np.linspace(0,epochs-1,3,dtype=int)

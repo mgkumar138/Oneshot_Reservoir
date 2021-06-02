@@ -47,13 +47,13 @@ class Maze:
             self.cues = self.smell[:6]
             self.totr = 6
 
-        elif mtype == 'npa':
+        elif mtype == '2npa':
             self.rlocs = np.array(
                 [self.holoc[1], self.holoc[13], self.holoc[18], self.holoc[30], self.holoc[35], self.holoc[47]])
             self.cues = np.concatenate([self.smell[6][None, :], self.smell[1:5], self.smell[7][None, :]], axis=0)
             self.totr = 6
 
-        elif mtype == 'nm':
+        elif mtype == '6npa':
             self.rlocs = np.array(
                 [self.holoc[2], self.holoc[19], self.holoc[23], self.holoc[28], self.holoc[32], self.holoc[46]])
             self.cues = self.smell[10:16]
@@ -437,12 +437,6 @@ class MultiplePA_Maze:
                 [self.holoc[8], self.holoc[13], self.holoc[18], self.holoc[30], self.holoc[35], self.holoc[40]])
             self.totr = 6
             self.cues = self.smell[:6]
-
-        elif mtype == 'npa':
-            self.rlocs = np.array(
-                [self.holoc[1], self.holoc[13], self.holoc[18], self.holoc[30], self.holoc[35], self.holoc[47]])
-            self.cues = np.concatenate([self.smell[6][None, :], self.smell[1:5], self.smell[7][None, :]], axis=0)
-            self.totr = 6
 
         elif mtype == '12npa':
             rlocidx = self.npaloc[self.loci]
