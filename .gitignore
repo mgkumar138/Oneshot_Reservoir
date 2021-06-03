@@ -1,10 +1,8 @@
-/motor_controller/
 /backend_scripts/other_models.py
 /Data/
 /DataInit/
-/Fig2/
+/Fig/
 /hidden_ac_6pa.py
 /plot_figures.py
-/Fig2/Paper_Fig/
-/Fig_copy/
+/Fig/Paper_Fig/
 .idea

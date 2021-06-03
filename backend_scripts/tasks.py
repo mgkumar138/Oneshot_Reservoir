@@ -89,7 +89,7 @@ def npapa_script(hp):
     print(exptname)
 
     if hp['savefig']:
-        plt.savefig('../Fig2/fig_{}.png'.format(exptname))
+        plt.savefig('../Fig/fig_{}.png'.format(exptname))
     if hp['savegenvar']:
         saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
                  [ totdgr, totpi])
@@ -143,7 +143,6 @@ def res_12pa_expt(hp,b):
 
     return dgr, pi, mvpath, _, [trw[-1], npa1w[-1]]
 
-
 def run_res_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None, nocue=None, noreward=None):
     if mtype!='train':
         mvpath = np.zeros((12,env.normax+1,2))
@@ -178,10 +177,8 @@ def run_res_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None
             else:
                 plastic = True
 
-            # plasticity using Forward euler
-            if hp['eulerm'] == 1:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic,
-                                 R=reward, xy=xy, cpc=cpc, h=h,g=g,mstate=mstate)
+            xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic,
+                             R=reward, xy=xy, cpc=cpc, h=h,g=g,mstate=mstate)
 
             # Pass coordinates to Place Cell & LCM to get actor & critic values
             state_cue, cpc, qhat, _, h, mstate, g = agent.act(state=state, cue_r_fb=cue, mstate=mstate)
@@ -191,11 +188,6 @@ def run_res_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None
 
             # Use action on environment, ds4r: distance from reward
             state, _, reward, done, ds4r = env.step(action)
-
-            # plasticity using Backward euler
-            if hp['eulerm'] == 0:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, R=reward, xy=xy, cpc=cpc, h=h, g=g,
-                                 mstate=mstate)
 
             if done:
                 if reward == 0 and plastic:
@@ -234,6 +226,7 @@ def run_res_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None
     if hp['platform'] == 'server':
         print('Agent {} {} training dig rate: {}'.format(b, mtype, dgr))
     return mvpath, mdlw, dgr, sesspi
+
 
 def a2c_12pa_expt(hp,b):
     from backend_scripts.model import BackpropAgent
@@ -435,9 +428,7 @@ def run_sym_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None
             else:
                 plastic = True
 
-            # plasticity using Forward euler
-            if hp['eulerm'] == 1:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
+            xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
 
             # Pass coordinates to Place Cell & LCM to get actor & critic values
             state_cue, cpc, qhat, _, = agent.act(state=state, cue_r_fb=cue)
@@ -449,10 +440,6 @@ def run_sym_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None
             state, _, reward, done, ds4r = env.step(action)
 
             agent.store(xy=xy, cue_r_fb=state_cue, R=reward, done=done, plastic=plastic)
-
-            # plasticity using Backward euler
-            if hp['eulerm'] == 0:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
 
             if done:
                 break
@@ -555,7 +542,7 @@ def multiplepa_script(hp):
     plt.tight_layout()
 
     if hp['savefig']:
-        plt.savefig('../Fig2/fig_{}.png'.format(exptname))
+        plt.savefig('../Fig/fig_{}.png'.format(exptname))
     if hp['savegenvar']:
         saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
                  [totlat, totdgr, totpi])
@@ -647,10 +634,8 @@ def run_res_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=
             else:
                 plastic = True
 
-            # plasticity using Forward euler
-            if hp['eulerm'] == 1:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic,
-                                 R=reward, xy=xy, cpc=cpc, h=h,g=g,mstate=mstate)
+            xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic,
+                             R=reward, xy=xy, cpc=cpc, h=h,g=g,mstate=mstate)
 
             # Pass coordinates to Place Cell & LCM to get actor & critic values
             state_cue, cpc, qhat, _, h, mstate, g = agent.act(state=state, cue_r_fb=cue, mstate=mstate)
@@ -660,11 +645,6 @@ def run_res_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=
 
             # Use action on environment, ds4r: distance from reward
             state, _, reward, done, ds4r = env.step(action)
-
-            # plasticity using Backward euler
-            if hp['eulerm'] == 0:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, R=reward, xy=xy, cpc=cpc, h=h, g=g,
-                                 mstate=mstate)
 
             if t in env.nort:
                 save_rdyn(alldyn[0], mtype, t, env.startpos, env.cue, h)
@@ -951,9 +931,7 @@ def run_sym_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=
             else:
                 plastic = True
 
-            # plasticity using Forward euler
-            if hp['eulerm'] == 1:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
+            xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
 
             # Pass coordinates to Place Cell & LCM to get actor & critic values
             state_cue, cpc, qhat, _, = agent.act(state=state, cue_r_fb=cue)
@@ -965,10 +943,6 @@ def run_sym_multiple_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=
             state, _, reward, done, ds4r = env.step(action)
 
             agent.store(xy=xy, cue_r_fb=state_cue, R=reward, done=done, plastic=plastic)
-
-            # plasticity using Backward euler
-            if hp['eulerm'] == 0:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
 
             if done:
                 break
@@ -1097,7 +1071,7 @@ def singlepa_script(hp):
     plt.show()
 
     if hp['savefig']:
-        plt.savefig('../Fig2/fig_{}.png'.format(exptname))
+        plt.savefig('../Fig/fig_{}.png'.format(exptname))
     if hp['savegenvar']:
         saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),   [totlat, totdgr, totpath])
 
@@ -1267,10 +1241,8 @@ def run_res_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=Non
             else:
                 plastic = True
 
-            # plasticity using Forward euler
-            if hp['eulerm'] == 1:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic,
-                                 R=reward, xy=xy, cpc=cpc, h=h,g=g,mstate=mstate)
+            xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic,
+                             R=reward, xy=xy, cpc=cpc, h=h,g=g,mstate=mstate)
 
             # Pass coordinates to Place Cell & LCM to get actor & critic values
             state_cue, cpc, qhat, _, h, mstate, g = agent.act(state=state, cue_r_fb=cue, mstate=mstate)
@@ -1280,11 +1252,6 @@ def run_res_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=Non
 
             # Use action on environment, ds4r: distance from reward
             state, _, reward, done, ds4r = env.step(action)
-
-            # plasticity using Backward euler
-            if hp['eulerm'] == 0:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, R=reward, xy=xy, cpc=cpc, h=h, g=g,
-                                 mstate=mstate)
 
             # if t in env.nort:
             #     save_rdyn(alldyn[5], mtype, t, env.startpos, env.cue, h)
@@ -1376,9 +1343,7 @@ def run_sym_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=Non
             else:
                 plastic = True
 
-            # plasticity using Forward euler
-            if hp['eulerm'] == 1:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
+            xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
 
             # Pass coordinates to Place Cell & LCM to get actor & critic values
             state_cue, cpc, qhat, _, = agent.act(state=state, cue_r_fb=cue)
@@ -1390,10 +1355,6 @@ def run_sym_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=Non
             state, _, reward, done, ds4r = env.step(action)
 
             agent.store(xy=xy, cue_r_fb=state_cue, R=reward, done=done, plastic=plastic)
-
-            # plasticity using Backward euler
-            if hp['eulerm'] == 0:
-                xy = agent.learn(s1=state, cue_r1_fb=cue, plasticity=plastic, xy=xy, cpc=cpc)
 
             # if t in env.nort:
             #     save_rdyn(alldyn[5], mtype, t, env.startpos, env.cue, h)

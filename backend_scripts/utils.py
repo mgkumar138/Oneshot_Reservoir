@@ -119,6 +119,10 @@ def get_default_hp(task, platform='laptop'):
         'nhid': 8192,  # number of hidden units for A2C
         'hidact': 'phia',  # activation function for A2C hidden layer
         'sparsity': 3,  # threshold for ReLU activation function
+        'gamma': 0.99,  # reward discount factor gamme for A2C
+        'alphaa2c': 0.25,  # to smoothen action taken by agent
+        'betaent': -0.001,  # beta entropy
+        'betaval': 0.5,  # beta value
 
         # actor parameters:
         'nact': 40,  # number of actor units
@@ -141,14 +145,10 @@ def get_default_hp(task, platform='laptop'):
         'recwinscl': 1,  # reservoir input weight scale
         'nrnn': 1024,  # number of rnn units
 
-        # learning parameters
-        'taug': 10000,  # reward discount factor gamme for A2C
-        'eulerm': 1,  # euler approximation for TD error 1 - forward, 0 - backward
-
         # motor controller parameters
         'omitg':0.025,  # threshold to omit L2(goal) to suppress motor controller
         'mcbeta': 4,  # motor controller beta
-        'xylr': 0.00015,  # learning rate of self position coordinate network
+        'xylr': 0.015,  # learning rate of self position coordinate network
         'recallbeta': 1,  # recall beta within symbolic memory
 
         # others

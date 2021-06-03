@@ -220,7 +220,6 @@ class Navex:
     def __init__(self,hp):
         ''' Learning single displaced locations '''
         self.hp = hp
-        self.workmem = hp['workmem']
         self.tstep = hp['tstep']
         self.maxstep = hp['time']*(1000 // self.tstep) # Train max time, 1hr
         self.normax = hp['probetime']  * (1000 // self.tstep)  # Non-rewarded probe test max time 60s

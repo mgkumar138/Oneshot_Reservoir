@@ -36,6 +36,8 @@ class Res_MC_Agent:
         self.pc = place_cells(hp)
         self.model = Res_Model(hp)
         self.ac = action_cells(hp)
+        self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_512_2021-06-03')
+        self.usesmc = hp['usesmc']
 
     def act(self, state, cue_r_fb, mstate):
         '''given state and cue, make action'''
@@ -46,8 +48,12 @@ class Res_MC_Agent:
         h, x, g, xy = self.model(state_cue_fb, mstate)  # goal and self position prediction by network model
         self.goal = g
 
-        # move to goal using motor controller if goal > threshold
-        qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
+        if self.usesmc:
+            # use symbolic motor controller
+            qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
+        else:
+            # use neural motor controller
+            qhat = self.mc(tf.concat([self.goal, xy], axis=1))
 
         return state_cue_fb, cpc, qhat, xy, h, x, g
 
@@ -60,7 +66,7 @@ class Res_MC_Agent:
             self.pastpre = tf.cast((1-self.alpha) * self.pastpre + self.alpha * cpc,dtype=tf.float32)
             tdxy = (-self.env.dtxy[None,:] + xy2-xy)  # TD error for self position
             exy = tf.matmul(self.pastpre,tdxy,transpose_a=True)  # compute trace
-            dwxy = self.tstep * self.xylr * exy  # learning rate * trace
+            dwxy = self.xylr * exy  # learning rate * trace
             self.model.layers[-1].set_weights([self.model.layers[-1].get_weights()[0] + dwxy]) # update weight
 
             if R > 0: # to increase computational speed, perform trace computation only when reward is positive
@@ -277,13 +283,12 @@ class BackpropAgent:
         self.tstep = hp['tstep']
 
         ''' agent parameters '''
-        self.taug = hp['taug']
-        self.beg = (1 - (self.tstep / self.taug))  # taug for euler backward approximation
+        self.gamma = hp['gamma'] # gamma reward discount factor
         self.lr = hp['lr']
         self.npc = hp['npc']
         self.nact = hp['nact']
         self.action = np.zeros(2)
-        self.actalpha = hp['actalpha']   # smooth action taken
+        self.alphaa2c = hp['alphaa2c']   # smooth action taken
         self.alpha = hp['tstep']/hp['tau']
 
         ''' critic parameters '''
@@ -310,7 +315,7 @@ class BackpropAgent:
         action_prob_dist = tf.nn.softmax(q)
         actsel = np.random.choice(range(self.nact), p=action_prob_dist.numpy()[0])  # choose 1 action based on probability
         actdir = self.ac.aj[:,actsel]/self.tstep  # select 1 out of 40 possible direction of movement
-        self.action = (1-self.actalpha)*self.action + self.actalpha*actdir.numpy()  # smoothen action trajectory
+        self.action = (1-self.alphaa2c)*self.action + self.alphaa2c*actdir.numpy()  # smoothen action trajectory
 
         return state_cue_fb, r, q, c, actsel, self.action
 
@@ -330,7 +335,7 @@ class BackpropAgent:
         discounted_rewards = []
         cumulative = 0
         for reward in rewards[::-1]:
-            cumulative = reward + self.beg * cumulative  # discounted reward with gamma
+            cumulative = reward + self.gamma * cumulative  # discounted reward with gamma
             discounted_rewards.append(cumulative)
         discounted_rewards.reverse()
 
@@ -407,7 +412,7 @@ class Memory:
 
 class Foster_MC_Agent:
     def __init__(self, hp, env):
-        ''' Symbolic model equivalent to Foster et al. (2000) '''
+        ''' Symbolic agent to learn multiple goals equivalent to Foster et al. (2000) '''
         self.env = env
         self.tstep = hp['tstep']
 
@@ -430,6 +435,8 @@ class Foster_MC_Agent:
         self.pc = place_cells(hp)
         self.model = Foster_Model()
         self.ac = action_cells(hp)
+        self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_512_2021-06-03')
+        self.usesmc = hp['usesmc']
 
     def act(self, state, cue_r_fb):
         cpc = tf.cast(self.pc.sense(state),dtype=tf.float32)
@@ -441,7 +448,12 @@ class Foster_MC_Agent:
         self.goal = self.recall(state_cue=state_cue_fb)
 
         ''' move to goal using motor controller: MC '''
-        qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
+        if self.usesmc:
+            # use symbolic motor controller
+            qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
+        else:
+            # use neural motor controller
+            qhat = self.mc(tf.concat([self.goal, xy], axis=1))
 
         return state_cue_fb, cpc, qhat, xy
 
@@ -471,7 +483,7 @@ class Foster_MC_Agent:
             self.pastpre = tf.cast((1-self.alpha) * self.pastpre + self.alpha * cpc,dtype=tf.float32)
             tdxy = (-self.env.dtxy[None,:] + xy2-xy)
             exy = tf.matmul(self.pastpre,tdxy,transpose_a=True)
-            dwxy = self.tstep * self.xylr * exy
+            dwxy = self.xylr * exy
             self.model.layers[-1].set_weights([self.model.layers[-1].get_weights()[0] + dwxy])
 
         return xy2
