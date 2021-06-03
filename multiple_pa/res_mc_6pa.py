@@ -6,9 +6,9 @@ from backend_scripts.tasks import multiplepa_script
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='6pa',platform='server')
+    hp = get_default_hp(task='6pa',platform='laptop')
     hp['agenttype'] = 'res'
-    hp['btstp'] = 3
+    hp['btstp'] = 1
     hp['savefig'] = True
     hp['savevar'] = False
     hp['savegenvar'] = False
