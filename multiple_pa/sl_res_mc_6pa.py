@@ -20,7 +20,7 @@ if __name__ == '__main__':
     hp['nrnn'] = 1024
     hp['taua'] = 2500 # increase reward duration
 
-    hp['usesmc'] = True
+    hp['usesmc'] = False
 
     hp['render'] = False  # visualise movement trial by trial
 

@@ -7,9 +7,9 @@ from backend_scripts.tasks import singlepa_script
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='1pa',platform='laptop')
+    hp = get_default_hp(task='1pa',platform='server')
     hp['agenttype'] = 'res'
-    hp['btstp'] = 1
+    hp['btstp'] = 3
     hp['savefig'] = True
     hp['savegenvar'] = False
 
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     hp['nrnn'] = 1024
     hp['taua'] = 2500  # increase reward duration
 
-    hp['usesmc'] = True
+    hp['usesmc'] = False
 
     hp['render'] = False  # visualise movement trial by trial
 
