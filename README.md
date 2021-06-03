@@ -1,21 +1,23 @@
 # One-shot learning of paired associations by a reservoir computing model with Hebbian plasticity
 
-This repository is the official implementation of One-shot learning of paired associations by a reservoir computing model with Hebbian plasticity. 
+This repository is the implementation of One-shot learning of paired associations by a reservoir computing model with Hebbian plasticity. 
 
 The main result of the paper is to demonstrate the one-shot learning of multiple target coordinates using a Reservoir computing model in a single displaced location and multiple paired association navigation task.
 
 4 agents were evaluated in both tasks and script begins with the following nomenclature:
-Advantage Actor Critic (A2C)                 - a2c*
-Symbolic agent                               - sym_mc*
-Reservoir agent trained by perceptron rule   - res_mc*
-Reservoir trained by sparse learning signal  - sl_res_mc*
+Advantage Actor Critic (A2C)                                            - a2c*
+Hybrid temporal difference - symbolic agent                             - sym_mc*
+Reservoir agent trained by perceptron rule                              - res_mc*
+Reservoir trained by 4-factor variant of exploratory-Hebbian (EH) rule  - sl_res_mc*
 
 
 ## Requirements
 
 Refer to list of dependencies used in requirements.txt
 
-Main dependency is Tensorflow 2.3.0
+Main dependency is:
+python version > 3.5;
+Tensorflow == 2.3.0
 
 To install requirements:
 
@@ -54,8 +56,12 @@ Hyperparameters are set to obtain results in paper and can be tuned in the respe
 
 ## Training details
 
-Since the outcome of the paper is to demonstrate one-shot learning, there are no pretrained models. Instead, the learning potential of each agent can be observed by running the respective scripts.
-Training for each agent takes about 15 minutes for single reward task and 30 minutes for multiple paired association task. Some agents would take a shorter time. 
+Since the outcome of the paper is to demonstrate one-shot learning, there are no pretrained models except for the neural motor controller. The learning potential of each agent can be observed by running the respective scripts.
+Training for each agent takes about 15 minutes for single reward task and 30 minutes for multiple paired association task. Some agents would take a shorter time.
+
+Most of the agent hyperparameters can be found in get_default_hp function in ./backend_scripts/utils.py. Critical hyperparameters are found in each *.py script.
+
+E.g. if you would want the sym_/res_/sl_res*.py agents to use the symbolic or neural motor controller, set hp['usesmc'] to True or False respectively. 
 
 
 ## Results

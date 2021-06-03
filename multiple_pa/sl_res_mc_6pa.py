@@ -13,14 +13,12 @@ if __name__ == '__main__':
     hp['savevar'] = False
     hp['savegenvar'] = False
 
-    ''' Model parameters '''
-
+    ''' Agent parameters '''
     hp['stochlearn'] = True
     hp['lr'] = 0.0005  # 0.0005
     hp['nrnn'] = 1024
-    hp['taua'] = 2500 # increase reward duration
-
-    hp['usesmc'] = False
+    hp['taua'] = 2500  # increase reward duration
+    hp['usesmc'] = False  # False = use neural motor controller
 
     hp['render'] = False  # visualise movement trial by trial
 

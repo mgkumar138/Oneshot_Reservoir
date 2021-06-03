@@ -14,9 +14,9 @@ if __name__ == '__main__':
     hp['savevar'] = False
     hp['savegenvar'] = False
 
+    ''' Agent parameters '''
     hp['recallbeta'] = 1
-
-    hp['usesmc'] = True
+    hp['usesmc'] = True  # True = use symbolic motor controller
 
     hp['render'] = False  # visualise movement trial by trial
 

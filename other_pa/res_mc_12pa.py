@@ -13,11 +13,11 @@ if __name__ == '__main__':
     hp['savevar'] = False
     hp['savegenvar'] = False
 
+    ''' Agent parameters '''
     hp['stochlearn'] = False
     hp['lr'] = 0.0005
     hp['nrnn'] = 1024
-
-    hp['usesmc'] = False
+    hp['usesmc'] = False  # False = use neural motor controller
 
     hp['render'] = False  # visualise movement trial by trial
 
