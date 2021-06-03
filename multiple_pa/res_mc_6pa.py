@@ -6,9 +6,9 @@ from backend_scripts.tasks import multiplepa_script
 
 if __name__ == '__main__':
 
-    hp = get_default_hp(task='6pa',platform='laptop')
+    hp = get_default_hp(task='6pa',platform='server')
     hp['agenttype'] = 'res'
-    hp['btstp'] = 1
+    hp['btstp'] = 3
     hp['savefig'] = True
     hp['savevar'] = False
     hp['savegenvar'] = False
@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '{}_{}_xy_{}sl_{}smc_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
+    hp['exptname'] = '2h_1024_{}_{}_xy_{}sl_{}smc_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
         hp['task'],hp['agenttype'], hp['stochlearn'],hp['usesmc'], hp['time'],hp['omitg'], hp['chaos'],
         hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],  hp['lr'],  hp['btstp'],dt.monotonic())
 

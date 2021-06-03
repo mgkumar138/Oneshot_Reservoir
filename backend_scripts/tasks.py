@@ -89,10 +89,10 @@ def npapa_script(hp):
     print(exptname)
 
     if hp['savefig']:
-        plt.savefig('../Fig/fig_{}.png'.format(exptname))
+        plt.savefig('fig_{}.png'.format(exptname))
     if hp['savegenvar']:
-        saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
-                 [ totdgr, totpi])
+        saveload('save', 'genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
+                 [totdgr, totpi])
 
     return totdgr, totpi, mvpath
 
@@ -136,7 +136,7 @@ def res_12pa_expt(hp,b):
 
     # Summarise weight change of layers
     if hp['savevar']:
-        saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
+        saveload('save', 'vars_{}_{}'.format(exptname, dt.time()),
                  [rdyn, qdyn, cdyn, tdyn, wtrk, mvpath, dgr, pi])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
@@ -265,7 +265,7 @@ def a2c_12pa_expt(hp,b):
     mvpath,  npa1w, dgr[3], pi[3] = run_a2c_12pa_expt(b,'12npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
 
     if hp['savevar']:
-        saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
+        saveload('save', 'vars_{}_{}'.format(exptname, dt.time()),
                  [mvpath, dgr, pi])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
@@ -386,7 +386,7 @@ def sym_12pa_expt(hp,b):
 
     # Summarise weight change of layers
     if hp['savevar']:
-        saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
+        saveload('save', 'vars_{}_{}'.format(exptname, dt.time()),
                  [mvpath, dgr, pi])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
@@ -542,9 +542,9 @@ def multiplepa_script(hp):
     plt.tight_layout()
 
     if hp['savefig']:
-        plt.savefig('../Fig/fig_{}.png'.format(exptname))
+        plt.savefig('fig_{}.png'.format(exptname))
     if hp['savegenvar']:
-        saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
+        saveload('save', 'genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),
                  [totlat, totdgr, totpi])
 
     return totlat, totdgr, totpi, mvpath
@@ -590,7 +590,7 @@ def res_multiplepa_expt(hp,b):
     lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_res_multiple_expt(b, '6npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
 
     if hp['savevar']:
-        saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
+        saveload('save', 'vars_{}_{}'.format(exptname, dt.time()),
                  [rdyn, gdyn, mvpath, lat, dgr, pi])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
@@ -746,7 +746,7 @@ def a2c_multiplepa_expt(hp,b):
     lat[trsess + evsess * 2:], mvpath[5], nmw, dgr[5], pi[5] = run_a2c_multiplepa_expt(b, '6npa', env, hp, agent, alldyn, evsess, trw, noreward=[nonrp[0]])
 
     if hp['savevar']:
-        saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
+        saveload('save', 'vars_{}_{}'.format(exptname, dt.time()),
                  [rdyn, qdyn, cdyn, tdyn, wtrk, mvpath, lat, dgr, pi])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
@@ -890,7 +890,7 @@ def sym_multiplepa_expt(hp,b):
 
     # Summarise weight change of layers
     if hp['savevar']:
-        saveload('save', '../Data/vars_{}_{}'.format(exptname, dt.time()),
+        saveload('save', 'vars_{}_{}'.format(exptname, dt.time()),
                  [rdyn, qdyn, cdyn, tdyn, wtrk, mvpath, lat, dgr, pi])
 
     print('---------------- Agent {} done in {:3.2f} min ---------------'.format(b, (dt.time() - start) / 60))
@@ -1071,9 +1071,9 @@ def singlepa_script(hp):
     plt.show()
 
     if hp['savefig']:
-        plt.savefig('../Fig/fig_{}.png'.format(exptname))
+        plt.savefig('fig_{}.png'.format(exptname))
     if hp['savegenvar']:
-        saveload('save', '../Data/genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),   [totlat, totdgr, totpath])
+        saveload('save', 'genvars_{}_b{}_{}'.format(exptname, btstp, dt.time()),   [totlat, totdgr, totpath])
 
     return totlat, totdgr, mvpath, mdlw
 

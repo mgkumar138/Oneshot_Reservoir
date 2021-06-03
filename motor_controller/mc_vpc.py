@@ -10,13 +10,13 @@ import datetime
 hp = get_default_hp(task='wkm',platform='gpu')
 pc = place_cells(hp)
 
-nhid = 512
+nhid = 1024
 nact = 40
 beta = 4
 lr = 0.001  #0.001
 res = 51
 omitg = 0.025
-modelname = 'motor_controller_1h_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
+modelname = 'motor_controller_h_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
 print(modelname)
 
 pos = np.linspace(-0.8,0.8,res)
@@ -62,9 +62,9 @@ class motor_controller(tf.keras.Model):
         self.h1 = tf.keras.layers.Dense(units=nhid, activation='relu',trainable=True,
                                                 use_bias=False, kernel_initializer='glorot_uniform', name='h1')
 
-        # self.drp1 = tf.keras.layers.Dropout(0.5)
-        # self.h2 = tf.keras.layers.Dense(units=nhid, activation='relu',trainable=True,
-        #                                         use_bias=False, kernel_initializer='glorot_uniform', name='h2')
+        #self.drp1 = tf.keras.layers.Dropout(0.5)
+        self.h2 = tf.keras.layers.Dense(units=nhid, activation='relu',trainable=True,
+                                                use_bias=False, kernel_initializer='glorot_uniform', name='h2')
         #
         # self.h3 = tf.keras.layers.Dense(units=nhid, activation='relu',trainable=True,
         #                                         use_bias=False, kernel_initializer='glorot_uniform', name='h3')
@@ -76,7 +76,7 @@ class motor_controller(tf.keras.Model):
     def call(self, x):
         # h1 = self.drp1(self.h1(self.ns(x))) # self.h1(self.ns(x)) #self.h3(self.h2(self.h1(self.ns(x))))
         # h2 = self.drp2(self.h2(h1))
-        a = self.action(self.h1(x))
+        a = self.action(self.h2(self.h1(x)))
         return a
 
 
@@ -90,7 +90,7 @@ model.compile(run_eagerly=True,
     loss=loss, metrics=['accuracy'])
 
 print(x.shape)
-history = model.fit(x, q, epochs=10, batch_size=32, validation_split=0.05, shuffle=True)
+history = model.fit(x, q, epochs=50, batch_size=32, validation_split=0.05, shuffle=True)
 model.summary()
 
 qpred = model.predict_on_batch(x[:32])

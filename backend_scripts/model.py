@@ -36,7 +36,7 @@ class Res_MC_Agent:
         self.pc = place_cells(hp)
         self.model = Res_Model(hp)
         self.ac = action_cells(hp)
-        self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_512_2021-06-03')
+        self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_1024_2021-06-03')
         self.usesmc = hp['usesmc']
 
     def act(self, state, cue_r_fb, mstate):
@@ -435,7 +435,7 @@ class Foster_MC_Agent:
         self.pc = place_cells(hp)
         self.model = Foster_Model()
         self.ac = action_cells(hp)
-        self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_512_2021-06-03')
+        self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_1024_2021-06-03')
         self.usesmc = hp['usesmc']
 
     def act(self, state, cue_r_fb):
