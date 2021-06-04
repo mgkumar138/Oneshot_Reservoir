@@ -13,9 +13,9 @@ nhid = 1024
 nact = 40
 beta = 4
 lr = 0.001  #0.001
-res = 31
+res = 21
 omitg = 0.75
-modelname = 'eps_motor_controller_2h_ns_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
+modelname = 'eps_motor_controller_2h_20_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
 print(modelname)
 
 checkpoint_path = '{}/cp.ckpt'.format(modelname)
@@ -31,8 +31,8 @@ nogidx = []
 i=0
 for goal in range(res**2):
     for curr in range(res**2):
-        gns = g[goal] + np.random.normal(0,0.025, size=2)
-        xyns = xy[curr] + np.random.normal(0,0.025, size=2)
+        gns = g[goal]
+        xyns = xy[curr]
 
         x.append(np.concatenate([gns, gns]))
 
@@ -72,17 +72,6 @@ for b in range(btstp):
         alloutputs.append(z)
 print('Randomised . . . ')
 
-
-# alleps = np.linspace(0,1,11)
-# for eps in alleps:
-#     a = np.insert(x,2,eps,axis=1)
-#     if eps > omitg:
-#         b = q
-#     else:
-#         b = np.zeros_like(q)
-#     allinputs.append(a)
-#     alloutputs.append(b)
-
 allinputs = np.vstack(allinputs)
 alloutputs = np.vstack(alloutputs)
 
@@ -100,16 +89,13 @@ class motor_controller(tf.keras.Model):
 
 
     def call(self, x):
-        # h1 = self.drp1(self.h1(self.ns(x))) # self.h1(self.ns(x)) #self.h3(self.h2(self.h1(self.ns(x))))
-        # h2 = self.drp2(self.h2(h1))
         a = self.action(self.h2(self.h1(x)))
         return a
 
 
 model = motor_controller()
 
-randidx = np.random.choice(np.arange(len(allinputs)), 16, replace=False)
-randidx = np.concatenate([randidx, np.arange(len(allinputs)-16,len(allinputs))])
+randidx = np.random.choice(np.arange(len(allinputs)), 32, replace=False)
 #model.load_weights(checkpoint_path)
 #ls, acc = model.evaluate(allinputs[randidx], alloutputs[randidx], verbose=2)
 
@@ -126,7 +112,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
 # model.save_weights(checkpoint_path.format(epoch=0))
 
 print(allinputs.shape)
-history = model.fit(allinputs, alloutputs, epochs=15, batch_size=batch_size, validation_split=0.05, shuffle=True, callbacks=[cp_callback])
+history = model.fit(allinputs, alloutputs, epochs=20, batch_size=batch_size, validation_split=0.05, shuffle=True, callbacks=[cp_callback])
 model.summary()
 
 qpred = model.predict_on_batch(allinputs[randidx])
