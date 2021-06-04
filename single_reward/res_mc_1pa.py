@@ -17,7 +17,7 @@ if __name__ == '__main__':
     hp['stochlearn'] = False
     hp['lr'] = 0.0005
     hp['nrnn'] = 1024
-    hp['usesmc'] = 'goal'
+    hp['usesmc'] = 'neural'
 
     hp['render'] = False  # visualise movement trial by trial
 

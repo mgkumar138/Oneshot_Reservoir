@@ -39,7 +39,7 @@ class Res_MC_Agent:
         self.ac = action_cells(hp)
         self.usesmc = hp['usesmc']
         if self.usesmc == 'neural':
-            self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_1024_2021-06-03')
+            self.mc = tf.keras.models.load_model('../motor_controller/eps_motor_controller_2h_0.75omg_1024_2021-06-04')
 
     def act(self, state, cue_r_fb, mstate):
         '''given state and cue, make action'''
@@ -54,14 +54,14 @@ class Res_MC_Agent:
         if self.usesmc == 'goal':
             # use symbolic motor controller with ||goal||^2 > omega
             qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
-        elif self.usesmc == 'epsilon':
-            # use symbolic motor controller with epsilon > omega
+        elif self.usesmc == 'confi':
+            # use symbolic motor controller with confi > omega
             qhat = eps_motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omite=self.omite)
         elif self.usesmc == 'neural':
             # use neural motor controller
             qhat = self.mc(tf.concat([self.goal, xy], axis=1))
         else:
-            print('No motor controller selected! Choose: goal or epsilon or neural')
+            print('No motor controller selected! Choose: goal or confi or neural')
 
         return state_cue_fb, cpc, qhat, xy, h, x, g
 
@@ -457,7 +457,7 @@ class Foster_MC_Agent:
         self.ac = action_cells(hp)
         self.usesmc = hp['usesmc']
         if self.usesmc == 'neural':
-            self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_1024_2021-06-03')
+            self.mc = tf.keras.models.load_model('../motor_controller/eps_motor_controller_2h_0.75omg_1024_2021-06-04')
 
     def act(self, state, cue_r_fb):
         cpc = tf.cast(self.pc.sense(state),dtype=tf.float32)
@@ -472,14 +472,14 @@ class Foster_MC_Agent:
         if self.usesmc == 'goal':
             # use symbolic motor controller with ||goal||^2 > omega
             qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
-        elif self.usesmc == 'epsilon':
-            # use symbolic motor controller with epsilon > omega
+        elif self.usesmc == 'confi':
+            # use symbolic motor controller with confi > omega
             qhat = eps_motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omite=self.omite)
         elif self.usesmc == 'neural':
             # use neural motor controller
             qhat = self.mc(tf.concat([self.goal, xy], axis=1))
         else:
-            print('No motor controller selected! Choose: goal or epsilon or neural')
+            print('No motor controller selected! Choose: goal or confi or neural')
 
         return state_cue_fb, cpc, qhat, xy
 

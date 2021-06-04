@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     ''' Agent parameters '''
     hp['recallbeta'] = 1
-    hp['usesmc'] = 'epsilon'
+    hp['usesmc'] = 'confi'
 
     hp['render'] = False  # visualise movement trial by trial
 

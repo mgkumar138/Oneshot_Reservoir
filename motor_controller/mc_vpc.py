@@ -13,12 +13,12 @@ nhid = 1024
 nact = 40
 beta = 4
 lr = 0.001  #0.001
-res = 21
-omitg = 0.8
-modelname = 'eps_motor_controller_1h_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
+res = 31
+omitg = 0.75
+modelname = 'eps_motor_controller_2h_ns_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
 print(modelname)
 
-checkpoint_path = "training_1/cp.ckpt"
+checkpoint_path = '{}/cp.ckpt'.format(modelname)
 checkpoint_dir = os.path.dirname(checkpoint_path)
 
 pos = np.linspace(-0.8,0.8,res)
@@ -31,13 +31,16 @@ nogidx = []
 i=0
 for goal in range(res**2):
     for curr in range(res**2):
-        x.append(np.concatenate([g[goal], xy[curr]]))
+        gns = g[goal] + np.random.normal(0,0.025, size=2)
+        xyns = xy[curr] + np.random.normal(0,0.025, size=2)
+
+        x.append(np.concatenate([gns, gns]))
 
         # if np.linalg.norm(g[goal],ord=2) < omitg:
         #     dircomp.append(np.zeros(2))
         #     nogidx.append(i)
         # else:
-        dircomp.append(g[goal] - xy[curr])
+        dircomp.append(gns - xyns)
         i+=1
 
 x = tf.cast(np.array(x),dtype=tf.float32)
@@ -52,15 +55,33 @@ q = tf.nn.softmax(beta * qk)
 # activate motor controller
 allinputs = []
 alloutputs = []
-alleps = np.linspace(0,1,11)
-for eps in alleps:
-    a = np.insert(x,2,eps,axis=1)
-    if eps > omitg:
-        b = q
-    else:
-        b = np.zeros_like(q)
-    allinputs.append(a)
-    alloutputs.append(b)
+btstp = 5
+for b in range(btstp):
+    supeps = np.random.uniform(0, omitg, len(q))
+    acteps = np.random.uniform(omitg, 1, len(q))
+    alleps = np.concatenate([supeps, acteps])
+    np.random.shuffle(alleps)
+    for i in range(len(q)):
+        eps = alleps[i]
+        u = np.insert(x[i],2,eps)
+        if eps >= omitg:
+            z = q[i]
+        else:
+            z = np.zeros_like(q[i])
+        allinputs.append(u)
+        alloutputs.append(z)
+print('Randomised . . . ')
+
+
+# alleps = np.linspace(0,1,11)
+# for eps in alleps:
+#     a = np.insert(x,2,eps,axis=1)
+#     if eps > omitg:
+#         b = q
+#     else:
+#         b = np.zeros_like(q)
+#     allinputs.append(a)
+#     alloutputs.append(b)
 
 allinputs = np.vstack(allinputs)
 alloutputs = np.vstack(alloutputs)
@@ -96,13 +117,16 @@ loss = tf.keras.losses.mean_squared_error
 model.compile(run_eagerly=True,
     optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
     loss=loss, metrics=['accuracy'])
-
+batch_size = 32
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  save_weights_only=True,
                                                  verbose=1)
 
+# model.load_weights(tf.train.latest_checkpoint(checkpoint_dir))
+# model.save_weights(checkpoint_path.format(epoch=0))
+
 print(allinputs.shape)
-history = model.fit(allinputs, alloutputs, epochs=10, batch_size=32, validation_split=0.05, shuffle=True, callbacks=[cp_callback])
+history = model.fit(allinputs, alloutputs, epochs=15, batch_size=batch_size, validation_split=0.05, shuffle=True, callbacks=[cp_callback])
 model.summary()
 
 qpred = model.predict_on_batch(allinputs[randidx])

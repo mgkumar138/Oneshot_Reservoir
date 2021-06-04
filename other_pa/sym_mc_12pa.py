@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     ''' Agent parameters '''
     hp['recallbeta'] = 1
-    hp['usesmc'] = 'epsilon'  # True = use symbolic motor controller
+    hp['usesmc'] = 'confi'  # True = use symbolic motor controller
 
     hp['render'] = False  # visualise movement trial by trial
 
