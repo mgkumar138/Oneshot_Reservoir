@@ -472,7 +472,6 @@ def run_sym_12pa_expt(b, mtype, env, hp, agent, alldyn, sessions, useweight=None
         dgr = np.mean(dgr)
 
     mdlw = agent.model.get_weights()
-    print(np.max(agent.model.get_weights()), np.min(agent.model.get_weights()))
 
     if hp['platform'] == 'server':
         print('Agent {} {} training dig rate: {}'.format(b, mtype, dgr))

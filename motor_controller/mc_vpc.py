@@ -15,7 +15,7 @@ beta = 4
 lr = 0.001  #0.001
 res = 21
 omitg = 0.75
-modelname = 'eps_motor_controller_2h_20_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
+modelname = 'eps_motor_controller_2h_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
 print(modelname)
 
 checkpoint_path = '{}/cp.ckpt'.format(modelname)
@@ -31,15 +31,11 @@ nogidx = []
 i=0
 for goal in range(res**2):
     for curr in range(res**2):
-        gns = g[goal]
-        xyns = xy[curr]
+        gns = g[goal]  # + np.random.normal(0,0.025,2)
+        xyns = xy[curr]  #+ np.random.normal(0,0.025,2)
 
-        x.append(np.concatenate([gns, gns]))
+        x.append(np.concatenate([gns, xyns]))
 
-        # if np.linalg.norm(g[goal],ord=2) < omitg:
-        #     dircomp.append(np.zeros(2))
-        #     nogidx.append(i)
-        # else:
         dircomp.append(gns - xyns)
         i+=1
 
@@ -95,7 +91,6 @@ class motor_controller(tf.keras.Model):
 
 model = motor_controller()
 
-randidx = np.random.choice(np.arange(len(allinputs)), 32, replace=False)
 #model.load_weights(checkpoint_path)
 #ls, acc = model.evaluate(allinputs[randidx], alloutputs[randidx], verbose=2)
 
@@ -108,13 +103,11 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  save_weights_only=True,
                                                  verbose=1)
 
-# model.load_weights(tf.train.latest_checkpoint(checkpoint_dir))
-# model.save_weights(checkpoint_path.format(epoch=0))
-
 print(allinputs.shape)
-history = model.fit(allinputs, alloutputs, epochs=20, batch_size=batch_size, validation_split=0.05, shuffle=True, callbacks=[cp_callback])
+history = model.fit(allinputs, alloutputs, epochs=10, batch_size=batch_size, validation_split=0.05, shuffle=True, callbacks=[cp_callback])
 model.summary()
 
+randidx = np.random.choice(np.arange(len(allinputs)), 32, replace=False)
 qpred = model.predict_on_batch(allinputs[randidx])
 
 plt.figure()
