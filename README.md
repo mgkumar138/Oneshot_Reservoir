@@ -17,9 +17,7 @@ System information
 
 OS: Windows 10
 
-Python version == 3.8.3
-
-Conda: Anaconda3-2021.05
+Python distribution: Anaconda3-2021.05
 
 Tensorflow == 2.3.0
 
