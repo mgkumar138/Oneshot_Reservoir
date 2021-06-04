@@ -13,18 +13,19 @@ Reservoir trained by 4-factor variant of exploratory-Hebbian (EH) rule  - sl_res
 
 ## Requirements
 
-Refer to list of dependencies used in requirements.txt
+System information
 
-Main dependency is:
-python version > 3.5;
+OS: Windows 10
+
+Python version == 3.8.3
+
+Conda: Anaconda3-2021.05
+
 Tensorflow == 2.3.0
 
-To install requirements:
-
-```setup
-pip install -r requirements.txt
+```train
+pip install tensorflow==2.3.0
 ```
-
 
 ## Single displaced locationn training & evaluation
 
