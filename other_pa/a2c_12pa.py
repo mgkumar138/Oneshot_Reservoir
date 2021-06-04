@@ -9,7 +9,7 @@ if __name__ == '__main__':
     hp = get_default_hp(task='12pa',platform='laptop')
     hp['agenttype'] = 'a2c'
     hp['btstp'] = 1
-    hp['savefig'] = False
+    hp['savefig'] = True
     hp['savevar'] = False
     hp['savegenvar'] = False
 
