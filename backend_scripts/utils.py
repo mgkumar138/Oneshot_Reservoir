@@ -99,7 +99,7 @@ def get_default_hp(task, platform='laptop'):
         'mazesize': 1.6,  # meters
         'task': task,  # type of task determiens number of training, evaluation sessions
         'tstep': 100,  # ms each step taken is every 100 ms
-        'time': 3600,  # seconds total trial time
+        'time': 600,  # seconds total trial time
         'probetime': 60,  # seconds total probe time
         'render': False,  # dont plot real time movement
         'epochs': epochs,  # only for single displaced location task
@@ -146,7 +146,8 @@ def get_default_hp(task, platform='laptop'):
         'nrnn': 1024,  # number of rnn units
 
         # motor controller parameters
-        'omitg':0.025,  # threshold to omit L2(goal) to suppress motor controller
+        'omitg':0.15,  # threshold to omit L2(goal) to suppress motor controller
+        'omite': 0.75,  # threshold to omit L2(goal) to suppress motor controller
         'mcbeta': 4,  # motor controller beta
         'xylr': 0.015,  # learning rate of self position coordinate network
         'recallbeta': 1,  # recall beta within symbolic memory

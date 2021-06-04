@@ -13,6 +13,7 @@ class Res_MC_Agent:
         self.lr = hp['lr']  # reservoir learning rate
         self.mcbeta = hp['mcbeta']  # motor controller beta
         self.omitg = hp['omitg']  # threshold to omit goal coordinate
+        self.omite = hp['omite']
         self.alpha = hp['tstep']/hp['tau']  # alpha value
 
         self.xylr = hp['xylr']  # self position coordiante learning rate
@@ -27,7 +28,7 @@ class Res_MC_Agent:
         self.resns = hp['resns']  # noise in reservoir
         self.nrnn = hp['nrnn'] # number of reservoir cells
         self.phat = 0  # initialise performance metric
-        self.gstate = tf.zeros([1,2])  # initialise goal state
+        self.gstate = tf.zeros([1,3])  # initialise goal state
         self.mstate = tf.random.normal(shape=[1, hp['nrnn']],
                                        mean=0, stddev=np.sqrt(1 / self.alpha) * self.resns)  # initialie reservoir state
         self.pastpre = 0
@@ -36,8 +37,9 @@ class Res_MC_Agent:
         self.pc = place_cells(hp)
         self.model = Res_Model(hp)
         self.ac = action_cells(hp)
-        self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_1024_2021-06-03')
         self.usesmc = hp['usesmc']
+        if self.usesmc == 'neural':
+            self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_1024_2021-06-03')
 
     def act(self, state, cue_r_fb, mstate):
         '''given state and cue, make action'''
@@ -48,12 +50,18 @@ class Res_MC_Agent:
         h, x, g, xy = self.model(state_cue_fb, mstate)  # goal and self position prediction by network model
         self.goal = g
 
-        if self.usesmc:
-            # use symbolic motor controller
+        ''' move to goal using motor controller: MC '''
+        if self.usesmc == 'goal':
+            # use symbolic motor controller with ||goal||^2 > omega
             qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
-        else:
+        elif self.usesmc == 'epsilon':
+            # use symbolic motor controller with epsilon > omega
+            qhat = eps_motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omite=self.omite)
+        elif self.usesmc == 'neural':
             # use neural motor controller
             qhat = self.mc(tf.concat([self.goal, xy], axis=1))
+        else:
+            print('No motor controller selected! Choose: goal or epsilon or neural')
 
         return state_cue_fb, cpc, qhat, xy, h, x, g
 
@@ -75,8 +83,8 @@ class Res_MC_Agent:
                     # add noise to goal
                     gns = g + tf.cast(tf.random.normal(mean=0, stddev=np.sqrt(1 / self.alpha) * 0.25, shape=g.shape), dtype=tf.float32)
                     self.gstate = (1 - self.alpha) * self.gstate + self.alpha * gns  # los pass filtered place cell
-
-                    P = -tf.reduce_sum((xy2 - gns) ** 2) # compute performance metric
+                    target = tf.concat([xy2, tf.ones([1, 1])], axis=1)
+                    P = -tf.reduce_sum((target - gns) ** 2) # compute performance metric
                     self.phat = (1 - self.alpha) * self.phat + self.alpha * P  # low pass filtered performance
 
                     if P > self.phat:  # modulatory factor
@@ -89,7 +97,8 @@ class Res_MC_Agent:
                     self.model.layers[-2].set_weights([self.model.layers[-2].get_weights()[0] + dwg])  # update weights
                 else:
                     ''' perceptron rule '''
-                    eg = tf.matmul(h, (xy2 - g), transpose_a=True)  # trace: pre * (target - goal prediction)
+                    target = tf.concat([xy2, tf.ones([1,1])],axis=1)
+                    eg = tf.matmul(h, (target - g), transpose_a=True)  # trace: pre * (target - goal prediction)
                     dwg = self.tstep * self.lr * eg * R  # trace * reward
                     self.model.layers[-2].set_weights([self.model.layers[-2].get_weights()[0] + dwg])
 
@@ -99,7 +108,7 @@ class Res_MC_Agent:
         ''' reset agent states every new trial '''
         self.phat = 0
         self.pastpre = 0
-        self.gstate = tf.zeros([1,2])
+        self.gstate = tf.zeros([1,3])
         self.mstate = tf.random.normal(shape=[1, self.nrnn], mean=0, stddev=
         tf.random.normal(shape=[1, self.nrnn], mean=0, stddev=np.sqrt(1 / self.alpha) * self.resns))
         self.xystate = tf.zeros([1, 2])
@@ -113,7 +122,7 @@ class Res_Model(tf.keras.Model):
         self.res = tf.keras.layers.RNN(rnncell,return_state=True, return_sequences=False, time_major=False,
                                         stateful=False, name='reservoir')
 
-        self.goal = tf.keras.layers.Dense(units=2, activation='linear',
+        self.goal = tf.keras.layers.Dense(units=3, activation='linear',
                                             use_bias=False, kernel_initializer='zeros', name='xygoal')
 
         self.xy = tf.keras.layers.Dense(units=2, activation='linear',
@@ -173,8 +182,18 @@ class RNN_Cell(tf.keras.layers.Layer):
 
 def motor_controller(goal, xy, ac, beta=4, omitg=0.025):
     ''' motor controller to decide direction to move with current position and goal location '''
-    if tf.norm(goal[0], ord=2) > omitg:  # omit goal if goal is less than threshold
-        dircomp = tf.cast(goal - xy, dtype=tf.float32)  # vector subtraction
+    if tf.norm(goal[0,:2], ord=2) > omitg:  # omit goal if goal is less than threshold
+        dircomp = tf.cast(goal[:,:2] - xy, dtype=tf.float32)  # vector subtraction
+        qk = tf.matmul(dircomp, ac.aj)  # choose action closest to direction to move
+        qhat = tf.nn.softmax(beta * qk)  # scale action with beta and get probability of action
+    else:
+        qhat = tf.zeros([1,ac.nact])  # if goal below threshold, no action selected by motor controller
+    return qhat
+
+def eps_motor_controller(goal, xy, ac, beta=4, omite=0.75):
+    ''' motor controller to decide direction to move with current position and goal location '''
+    if goal[0,-1] > omite:  # omit goal if goal is less than threshold
+        dircomp = tf.cast(goal[:,:2] - xy, dtype=tf.float32)  # vector subtraction
         qk = tf.matmul(dircomp, ac.aj)  # choose action closest to direction to move
         qhat = tf.nn.softmax(beta * qk)  # scale action with beta and get probability of action
     else:
@@ -419,6 +438,7 @@ class Foster_MC_Agent:
         ''' agent parameters '''
         self.mcbeta = hp['mcbeta']  # motor controller beta
         self.omitg = hp['omitg']  # omit goal threshold
+        self.omite = hp['omite']
         self.alpha = hp['tstep']/hp['tau']
         self.xylr = hp['xylr']  # self position learning rate
         self.npc = hp['npc']  # number of place cells
@@ -427,7 +447,7 @@ class Foster_MC_Agent:
         self.pcstate = tf.zeros([1, hp['npc']* hp['npc']])
 
         ''' memory '''
-        self.memory = np.zeros([18,49+18+2])  # 2D episodic memory matrix to store place cell, cue, goal coordinate
+        self.memory = np.zeros([18,49+18+2+1])  # 2D episodic memory matrix to store place cell, cue, goal coordinate
         self.pastpre = 0
         self.recallbeta = hp['recallbeta']  # recall beta
 
@@ -435,8 +455,9 @@ class Foster_MC_Agent:
         self.pc = place_cells(hp)
         self.model = Foster_Model()
         self.ac = action_cells(hp)
-        self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_1024_2021-06-03')
         self.usesmc = hp['usesmc']
+        if self.usesmc == 'neural':
+            self.mc = tf.keras.models.load_model('../motor_controller/motor_controller_1h_0.025omg_1024_2021-06-03')
 
     def act(self, state, cue_r_fb):
         cpc = tf.cast(self.pc.sense(state),dtype=tf.float32)
@@ -448,12 +469,17 @@ class Foster_MC_Agent:
         self.goal = self.recall(state_cue=state_cue_fb)
 
         ''' move to goal using motor controller: MC '''
-        if self.usesmc:
-            # use symbolic motor controller
+        if self.usesmc == 'goal':
+            # use symbolic motor controller with ||goal||^2 > omega
             qhat = motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omitg=self.omitg)
-        else:
+        elif self.usesmc == 'epsilon':
+            # use symbolic motor controller with epsilon > omega
+            qhat = eps_motor_controller(goal=self.goal, xy=xy, ac=self.ac, beta=self.mcbeta, omite=self.omite)
+        elif self.usesmc == 'neural':
             # use neural motor controller
             qhat = self.mc(tf.concat([self.goal, xy], axis=1))
+        else:
+            print('No motor controller selected! Choose: goal or epsilon or neural')
 
         return state_cue_fb, cpc, qhat, xy
 
@@ -462,15 +488,15 @@ class Foster_MC_Agent:
         if done and plastic:
             memidx = np.argmax(cue_r_fb)-49
             if R>0:
-                self.memory[memidx] = np.concatenate([cue_r_fb,xy],axis=1)
+                self.memory[memidx] = np.concatenate([cue_r_fb,xy, np.array([[1]])],axis=1)
             else:
                 self.memory[memidx] = 0
 
     def recall(self,state_cue):
         ''' attention mechanism to query memory to retrieve goal coord'''
-        qk = tf.matmul(state_cue, self.memory[:, :-2], transpose_b=True)  # use current position & cue to query memory
+        qk = tf.matmul(state_cue, self.memory[:, :67], transpose_b=True)  # use current position & cue to query memory
         At = tf.nn.softmax(self.recallbeta * qk)  # attention weight
-        gt = tf.matmul(At, self.memory[:, -2:])  # goalxy
+        gt = tf.matmul(At, self.memory[:, -3:])  # goalxy
         return tf.cast(gt,dtype=tf.float32)
 
     def learn(self, s1, cue_r1_fb, xy, cpc,plasticity=True):

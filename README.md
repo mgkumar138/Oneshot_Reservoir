@@ -2,7 +2,7 @@
 
 This repository contains the 
 - Appendix for the supplementary material as a PDF 
-- Code to obtain the results described in the paper
+- Code to obtain the results described in the paper (Instructions to run the code is given below)
       
 The main result of the paper is to demonstrate the one-shot learning of multiple target coordinates using a Reservoir computing model in a single displaced location and multiple paired association navigation task.
 

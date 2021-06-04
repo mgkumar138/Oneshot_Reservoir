@@ -16,11 +16,11 @@ if __name__ == '__main__':
 
     ''' Agent parameters '''
     hp['recallbeta'] = 1
-    hp['usesmc'] = True  # True = use symbolic motor controller
+    hp['usesmc'] = 'epsilon'  # True = use symbolic motor controller
 
     hp['render'] = False  # visualise movement trial by trial
 
-    hp['exptname'] = '{}_{}_xy_{}smc_{}t_{}om_{}taua_{}xy_b{}_{}'.format(hp['usesmc'],
-        hp['task'], hp['agenttype'],hp['time'], hp['omitg'], hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
+    hp['exptname'] = '{}_{}_xy_{}smc_{}t_{}om_{}taua_{}xy_b{}_{}'.format(
+        hp['task'], hp['agenttype'],hp['usesmc'],hp['time'], hp['omitg'], hp['taua'],hp['xylr'],hp['btstp'],dt.monotonic())
 
     totdgr, totpi, mvpath = npapa_script(hp)
