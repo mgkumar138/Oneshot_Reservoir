@@ -1,11 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import os
+
 from backend_scripts.model import place_cells
 from backend_scripts.utils import get_default_hp, saveload
 import datetime
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 hp = get_default_hp(task='wkm',platform='gpu')
 pc = place_cells(hp)
@@ -14,9 +13,9 @@ nhid = 1024
 nact = 40
 beta = 4
 lr = 0.001  #0.001
-res = 51
+res = 31
 omitg = 0.025
-modelname = 'motor_controller_h_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
+modelname = 'motor_controller_1h_{}omg_{}_{}'.format(omitg,nhid, str(datetime.date.today()))
 print(modelname)
 
 pos = np.linspace(-0.8,0.8,res)
@@ -61,17 +60,9 @@ class motor_controller(tf.keras.Model):
         super().__init__(**kwargs)
         self.h1 = tf.keras.layers.Dense(units=nhid, activation='relu',trainable=True,
                                                 use_bias=False, kernel_initializer='glorot_uniform', name='h1')
-
-        #self.drp1 = tf.keras.layers.Dropout(0.5)
-        self.h2 = tf.keras.layers.Dense(units=nhid, activation='relu',trainable=True,
-                                                use_bias=False, kernel_initializer='glorot_uniform', name='h2')
-        #
-        # self.h3 = tf.keras.layers.Dense(units=nhid, activation='relu',trainable=True,
-        #                                         use_bias=False, kernel_initializer='glorot_uniform', name='h3')
-        # self.drp2 = tf.keras.layers.Dropout(0.5)
         self.action = tf.keras.layers.Dense(units=nact, activation='softmax',
                                                 use_bias=False, kernel_initializer='zeros', name='action')
-        #self.ns = tf.keras.layers.GaussianNoise(0.025)
+
 
     def call(self, x):
         # h1 = self.drp1(self.h1(self.ns(x))) # self.h1(self.ns(x)) #self.h3(self.h2(self.h1(self.ns(x))))
@@ -82,7 +73,6 @@ class motor_controller(tf.keras.Model):
 
 model = motor_controller()
 
-#loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
 loss = tf.keras.losses.mean_squared_error
 
 model.compile(run_eagerly=True,
@@ -90,7 +80,7 @@ model.compile(run_eagerly=True,
     loss=loss, metrics=['accuracy'])
 
 print(x.shape)
-history = model.fit(x, q, epochs=50, batch_size=32, validation_split=0.05, shuffle=True)
+history = model.fit(x, q, epochs=10, batch_size=32, validation_split=0.05, shuffle=True)
 model.summary()
 
 qpred = model.predict_on_batch(x[:32])
@@ -119,9 +109,6 @@ plt.plot(q[30])
 plt.plot(qpred[30])
 plt.show()
 
-#hw, aw = model.trainable_weights
-#model.save_weights('motor_controller_weights_{}_{}'.format(nhid, str(datetime.date.today())))
-#saveload('save','mc_w_{}_{}'.format(nhid, str(datetime.date.today())),[hw, aw])
 model.save(modelname)
 
 
