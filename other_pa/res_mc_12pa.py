@@ -8,15 +8,15 @@ if __name__ == '__main__':
 
     hp = get_default_hp(task='12pa',platform='laptop')
     hp['agenttype'] = 'res'
-    hp['btstp'] = 1
+    hp['btstp'] = 30
     hp['savefig'] = True
     hp['savevar'] = False
-    hp['savegenvar'] = False
+    hp['savegenvar'] = True
 
     ''' Agent parameters '''
     hp['stochlearn'] = False
     hp['lr'] = 0.0005
-    hp['nrnn'] = 1024
+    hp['nrnn'] = 4096
     hp['usesmc'] = 'neural'  # False = use neural motor controller
 
     hp['render'] = False  # visualise movement trial by trial

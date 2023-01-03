@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
     hp = get_default_hp(task='12pa',platform='laptop')
     hp['agenttype'] = 'res'
-    hp['btstp'] = 1
+    hp['btstp'] = 9
     hp['savefig'] = True
     hp['savevar'] = False
     hp['savegenvar'] = False
@@ -18,12 +18,12 @@ if __name__ == '__main__':
     hp['lr'] = 0.0005
     hp['nrnn'] = 1024
     hp['taua'] = 2500  # increase reward duration
-    hp['usesmc'] = 'neural'  # False = use neural motor controller
+    hp['usesmc'] = 'confi'  # False = use neural motor controller
 
     hp['render'] = False  # visualise movement trial by trial
 
     hp['exptname'] = '{}_{}_xy_{}sl_{}smc_{}t_{}om_{}ch_{}n_{}tau_{}taua_{}xy_{}lr_b{}_{}'.format(
-        hp['task'],hp['agenttype'], hp['stochlearn'],hp['usesmc'], hp['time'],hp['omitg'], hp['chaos'],
+        hp['task'],hp['agenttype'], hp['stochlearn'],hp['usesmc'], hp['time'],hp['omite'], hp['chaos'],
         hp['nrnn'], hp['tau'], hp['taua'],hp['xylr'],  hp['lr'],  hp['btstp'],dt.monotonic())
 
     totdgr, totpi, mvpath = npapa_script(hp)

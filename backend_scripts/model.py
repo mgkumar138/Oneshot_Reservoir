@@ -434,6 +434,7 @@ class Foster_MC_Agent:
         ''' Symbolic agent to learn multiple goals equivalent to Foster et al. (2000) '''
         self.env = env
         self.tstep = hp['tstep']
+        self.hp = hp
 
         ''' agent parameters '''
         self.mcbeta = hp['mcbeta']  # motor controller beta
@@ -450,6 +451,8 @@ class Foster_MC_Agent:
         self.memory = np.zeros([18,49+18+2+1])  # 2D episodic memory matrix to store place cell, cue, goal coordinate
         self.pastpre = 0
         self.recallbeta = hp['recallbeta']  # recall beta
+        self.tempgoal = 0
+        self.goal = tf.zeros([1,3])
 
         ''' Setup model: Place cell, symbolic, Action cells '''
         self.pc = place_cells(hp)
@@ -466,7 +469,7 @@ class Foster_MC_Agent:
 
         xy = self.model(cpc[None, :])  # get self position estimate
 
-        self.goal = self.recall(state_cue=state_cue_fb)
+        self.tempgoal = self.recall(state_cue=state_cue_fb)
 
         ''' move to goal using motor controller: MC '''
         if self.usesmc == 'goal':
@@ -504,13 +507,15 @@ class Foster_MC_Agent:
 
         _, _, _, xy2 = self.act(s1, cue_r1_fb)  # get new curent position after taking action
 
+        self.goal = (1 - self.alpha) * self.goal + self.alpha * self.tempgoal
+
         if plasticity:
             ''' learn self position during training trials '''
             self.pastpre = tf.cast((1-self.alpha) * self.pastpre + self.alpha * cpc,dtype=tf.float32)
             tdxy = (-self.env.dtxy[None,:] + xy2-xy)
             exy = tf.matmul(self.pastpre,tdxy,transpose_a=True)
-            dwxy = self.xylr * exy
-            self.model.layers[-1].set_weights([self.model.layers[-1].get_weights()[0] + dwxy])
+            dwxy = self.tstep * (self.hp['xylr']/100) * exy
+            self.model.layers[-1].set_weights([tf.clip_by_value(self.model.layers[-1].get_weights()[0] + dwxy,-1,1)])
 
         return xy2
 
@@ -518,6 +523,8 @@ class Foster_MC_Agent:
         self.pastpre = 0
         self.xystate = tf.zeros([1, 2])
         self.pcstate = tf.zeros([1, self.npc**2])
+        self.goal = tf.zeros([1, 3])
+        self.tempgoal = 0
 
 
 class Foster_Model(tf.keras.Model):

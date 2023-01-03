@@ -29,7 +29,7 @@ System information
 pip install tensorflow==2.3.0
 ```
 
-## Single displaced locationn training & evaluation
+## Single displaced location training & evaluation
 
 To run each agent described in the paper in the single displaced location task, set working directory to ./single_reward
 
@@ -137,3 +137,12 @@ Our agents achieve the following performance when learning multiple paired assoc
 
 ## Contributing
 Please cite the relevant work if the code is used for academic purposes.
+
+```citation
+@article{kumar2021one,
+  title={One-shot learning of paired associations by a reservoir computing model with Hebbian plasticity},
+  author={Kumar, M Ganesh and Tan, Cheston and Libedinsky, Camilo and Yen, Shih-Cheng and Tan, Andrew Yong-Yi},
+  journal={arXiv preprint arXiv:2106.03580},
+  year={2021}
+}
+```

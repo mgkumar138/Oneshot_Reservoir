@@ -1229,7 +1229,7 @@ def run_res_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=Non
         h = agent.mstate
         mstate = agent.mstate
         g = agent.gstate
-
+        trackg = []
         while not done:
             if env.rendercall:
                 env.render()
@@ -1245,7 +1245,7 @@ def run_res_1rloc_expt(b, env, hp, agent, sessions, useweight=None, noreward=Non
 
             # Pass coordinates to Place Cell & LCM to get actor & critic values
             state_cue, cpc, qhat, _, h, mstate, g = agent.act(state=state, cue_r_fb=cue, mstate=mstate)
-
+            trackg.append(g)
             # Convolve actor dynamics & Action selection
             action, rho = agent.ac.move(qhat)
 

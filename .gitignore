@@ -1,8 +1,8 @@
-/backend_scripts/other_models.py
+/other_scripts/other_models.py
 /Data/
 /DataInit/
-/hidden_ac_6pa.py
-/plot_figures.py
+/other_scripts/hidden_ac_6pa.py
+/other_scripts/plot_figures.py
 .idea
 /Fig/
 /single_reward/*.png
@@ -12,3 +12,4 @@
 /motor_controller/eps_motor_controller_2h_ns_0.75omg_1024_2021-06-04
 /motor_controller/training_1
 /motor_controller/eps_motor_controller_2h_20_0.75omg_1024_2021-06-04/
+/other_scripts/

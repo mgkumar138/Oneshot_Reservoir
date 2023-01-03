@@ -195,6 +195,7 @@ class run_Rstep():
         self.totR = 0
         self.fullR = (1 - 1e-4) * self.Rval/self.tstep # Stop trial after 99.99% of reward disbursed
         self.count = False
+        self.countR = 0
 
     def convR(self,rat, rbt):
         rat = (1 - (self.tstep / self.taua)) * rat
@@ -213,6 +214,8 @@ class run_Rstep():
         done = False
         if self.totR>=self.fullR: # end after fullR reached or max 3 seconds
             done = True
+        #     print(self.countR)
+        # if self.count: self.countR +=1
         return self.rt, done
 
 
